@@ -1,11 +1,11 @@
-# Example 03 — Critical Gaps (60%)
+# Example 03 -- Critical Gaps (60%)
 
 **Scenario:** User registration REST API  
 **Gap Score:** 60% 🔴 Critical
 
 ## What Happened
 
-The Implementer wrote only 4 tests — all happy path. The sealed suite had 15 tests
+The Implementer wrote only 4 tests -- all happy path. The sealed suite had 15 tests
 and 9 failed, revealing severe blind spots:
 
 | # | Failure | Category |
@@ -20,7 +20,7 @@ and 9 failed, revealing severe blind spots:
 | 8 | Password leaked in API response | 🔴 Security |
 | 9 | Race condition on duplicate email | Edge case |
 
-**Analysis:** The Implementer built the "golden path" — register a user, get a
+**Analysis:** The Implementer built the "golden path" -- register a user, get a
 response, save to database. But it completely missed input validation, security
 hardening, and error handling. 4 of the 9 failures are security vulnerabilities.
 

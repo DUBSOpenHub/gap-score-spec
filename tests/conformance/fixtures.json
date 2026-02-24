@@ -1,0 +1,991 @@
+{
+  "conformance_suite_version": "1.0.0",
+  "description": "Black-box conformance tests for Gap Score validators. Any compliant validator must produce matching output and exit codes for these fixtures.",
+  "reference_validator": "validators/gap-score.py (Python, Spec v1.0.0)",
+  "fixtures": [
+    {
+      "id": "01-perfect-score-sealed-only",
+      "description": "Example 01-perfect-score, sealed tests only",
+      "input": {
+        "sealed": "examples/01-perfect-score/sealed-results.json"
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 0.0,
+          "level": "perfect"
+        },
+        "sealed_tests": {
+          "total": 5,
+          "passed": 5,
+          "failed": 0
+        },
+        "failures": []
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "01-perfect-score-sealed-and-open",
+      "description": "Example 01-perfect-score, sealed + open tests",
+      "input": {
+        "sealed": "examples/01-perfect-score/sealed-results.json",
+        "open": "examples/01-perfect-score/open-results.json"
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 0.0,
+          "level": "perfect"
+        },
+        "sealed_tests": {
+          "total": 5,
+          "passed": 5,
+          "failed": 0
+        },
+        "failures": [],
+        "open_tests": {
+          "total": 8,
+          "passed": 8,
+          "failed": 0
+        },
+        "coverage_comparison": {
+          "happy_path": {
+            "sealed": 3,
+            "open": 4,
+            "delta": -1
+          },
+          "edge_case": {
+            "sealed": 1,
+            "open": 1,
+            "delta": 0
+          },
+          "error_handling": {
+            "sealed": 1,
+            "open": 3,
+            "delta": -2
+          },
+          "security": {
+            "sealed": 0,
+            "open": 0,
+            "delta": 0
+          }
+        }
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "02-minor-gaps-sealed-only",
+      "description": "Example 02-minor-gaps, sealed tests only",
+      "input": {
+        "sealed": "examples/02-minor-gaps/sealed-results.json"
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 11.1,
+          "level": "minor"
+        },
+        "sealed_tests": {
+          "total": 18,
+          "passed": 16,
+          "failed": 2
+        },
+        "failures": [
+          {
+            "test_name": "test_rejects_gpl_dependency",
+            "category": "security",
+            "expected": "CLI exits with code 2",
+            "actual": "CLI exits with code 0",
+            "message": "GPL dependency not blocked"
+          },
+          {
+            "test_name": "test_csv_report_includes_risk",
+            "category": "edge_case",
+            "expected": "CSV contains risk column",
+            "actual": "Column missing",
+            "message": "Report missing risk metadata"
+          }
+        ]
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "02-minor-gaps-sealed-and-open",
+      "description": "Example 02-minor-gaps, sealed + open tests",
+      "input": {
+        "sealed": "examples/02-minor-gaps/sealed-results.json",
+        "open": "examples/02-minor-gaps/open-results.json"
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 11.1,
+          "level": "minor"
+        },
+        "sealed_tests": {
+          "total": 18,
+          "passed": 16,
+          "failed": 2
+        },
+        "failures": [
+          {
+            "test_name": "test_rejects_gpl_dependency",
+            "category": "security",
+            "expected": "CLI exits with code 2",
+            "actual": "CLI exits with code 0",
+            "message": "GPL dependency not blocked"
+          },
+          {
+            "test_name": "test_csv_report_includes_risk",
+            "category": "edge_case",
+            "expected": "CSV contains risk column",
+            "actual": "Column missing",
+            "message": "Report missing risk metadata"
+          }
+        ],
+        "open_tests": {
+          "total": 12,
+          "passed": 12,
+          "failed": 0
+        },
+        "coverage_comparison": {
+          "happy_path": {
+            "sealed": 7,
+            "open": 6,
+            "delta": 1
+          },
+          "edge_case": {
+            "sealed": 6,
+            "open": 3,
+            "delta": 3
+          },
+          "error_handling": {
+            "sealed": 4,
+            "open": 3,
+            "delta": 1
+          },
+          "security": {
+            "sealed": 1,
+            "open": 0,
+            "delta": 1
+          }
+        }
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "03-critical-gaps-sealed-only",
+      "description": "Example 03-critical-gaps, sealed tests only",
+      "input": {
+        "sealed": "examples/03-critical-gaps/sealed-results.json"
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 60.0,
+          "level": "critical"
+        },
+        "sealed_tests": {
+          "total": 15,
+          "passed": 6,
+          "failed": 9
+        },
+        "failures": [
+          {
+            "test_name": "test_register_hashes_password",
+            "category": "security",
+            "expected": "Password stored as bcrypt hash",
+            "actual": "Password stored in plaintext",
+            "message": "Passwords not hashed before storage"
+          },
+          {
+            "test_name": "test_duplicate_email_returns_409",
+            "category": "error_handling",
+            "expected": "HTTP 409 Conflict",
+            "actual": "HTTP 500 Internal Server Error",
+            "message": "Duplicate email causes unhandled database error"
+          },
+          {
+            "test_name": "test_invalid_email_rejected",
+            "category": "error_handling",
+            "expected": "HTTP 400 with validation error",
+            "actual": "HTTP 201 Created",
+            "message": "Invalid email format accepted without validation"
+          },
+          {
+            "test_name": "test_empty_password_rejected",
+            "category": "error_handling",
+            "expected": "HTTP 400",
+            "actual": "HTTP 201",
+            "message": "Empty password accepted"
+          },
+          {
+            "test_name": "test_password_min_length",
+            "category": "edge_case",
+            "expected": "HTTP 400 for password < 8 chars",
+            "actual": "HTTP 201",
+            "message": "Short password accepted"
+          },
+          {
+            "test_name": "test_sql_injection_in_email",
+            "category": "security",
+            "expected": "Input sanitized, no SQL execution",
+            "actual": "SQL error in response",
+            "message": "SQL injection possible via email field"
+          },
+          {
+            "test_name": "test_rate_limiting",
+            "category": "security",
+            "expected": "HTTP 429 after 10 requests/min",
+            "actual": "HTTP 201",
+            "message": "No rate limiting on registration endpoint"
+          },
+          {
+            "test_name": "test_response_excludes_password",
+            "category": "security",
+            "expected": "Response body has no password field",
+            "actual": "Password visible in response",
+            "message": "Password leaked in API response"
+          },
+          {
+            "test_name": "test_concurrent_registration",
+            "category": "edge_case",
+            "expected": "One succeeds, one gets 409",
+            "actual": "Both succeed with same email",
+            "message": "Race condition allows duplicate registration"
+          }
+        ]
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "03-critical-gaps-sealed-and-open",
+      "description": "Example 03-critical-gaps, sealed + open tests",
+      "input": {
+        "sealed": "examples/03-critical-gaps/sealed-results.json",
+        "open": "examples/03-critical-gaps/open-results.json"
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 60.0,
+          "level": "critical"
+        },
+        "sealed_tests": {
+          "total": 15,
+          "passed": 6,
+          "failed": 9
+        },
+        "failures": [
+          {
+            "test_name": "test_register_hashes_password",
+            "category": "security",
+            "expected": "Password stored as bcrypt hash",
+            "actual": "Password stored in plaintext",
+            "message": "Passwords not hashed before storage"
+          },
+          {
+            "test_name": "test_duplicate_email_returns_409",
+            "category": "error_handling",
+            "expected": "HTTP 409 Conflict",
+            "actual": "HTTP 500 Internal Server Error",
+            "message": "Duplicate email causes unhandled database error"
+          },
+          {
+            "test_name": "test_invalid_email_rejected",
+            "category": "error_handling",
+            "expected": "HTTP 400 with validation error",
+            "actual": "HTTP 201 Created",
+            "message": "Invalid email format accepted without validation"
+          },
+          {
+            "test_name": "test_empty_password_rejected",
+            "category": "error_handling",
+            "expected": "HTTP 400",
+            "actual": "HTTP 201",
+            "message": "Empty password accepted"
+          },
+          {
+            "test_name": "test_password_min_length",
+            "category": "edge_case",
+            "expected": "HTTP 400 for password < 8 chars",
+            "actual": "HTTP 201",
+            "message": "Short password accepted"
+          },
+          {
+            "test_name": "test_sql_injection_in_email",
+            "category": "security",
+            "expected": "Input sanitized, no SQL execution",
+            "actual": "SQL error in response",
+            "message": "SQL injection possible via email field"
+          },
+          {
+            "test_name": "test_rate_limiting",
+            "category": "security",
+            "expected": "HTTP 429 after 10 requests/min",
+            "actual": "HTTP 201",
+            "message": "No rate limiting on registration endpoint"
+          },
+          {
+            "test_name": "test_response_excludes_password",
+            "category": "security",
+            "expected": "Response body has no password field",
+            "actual": "Password visible in response",
+            "message": "Password leaked in API response"
+          },
+          {
+            "test_name": "test_concurrent_registration",
+            "category": "edge_case",
+            "expected": "One succeeds, one gets 409",
+            "actual": "Both succeed with same email",
+            "message": "Race condition allows duplicate registration"
+          }
+        ],
+        "open_tests": {
+          "total": 4,
+          "passed": 4,
+          "failed": 0
+        },
+        "coverage_comparison": {
+          "happy_path": {
+            "sealed": 3,
+            "open": 3,
+            "delta": 0
+          },
+          "edge_case": {
+            "sealed": 5,
+            "open": 1,
+            "delta": 4
+          },
+          "error_handling": {
+            "sealed": 3,
+            "open": 0,
+            "delta": 3
+          },
+          "security": {
+            "sealed": 4,
+            "open": 0,
+            "delta": 4
+          }
+        }
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "edge-zero-tests",
+      "description": "Empty sealed test suite returns 0% perfect",
+      "input": {
+        "sealed_inline": {
+          "tests": []
+        }
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 0.0,
+          "level": "perfect"
+        },
+        "sealed_tests": {
+          "total": 0,
+          "passed": 0,
+          "failed": 0
+        },
+        "failures": []
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "edge-all-pass",
+      "description": "All sealed tests pass \u2192 0% perfect",
+      "input": {
+        "sealed_inline": {
+          "tests": [
+            {
+              "name": "test_0",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_1",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_2",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_3",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_4",
+              "status": "passed",
+              "category": "happy_path"
+            }
+          ]
+        }
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 0.0,
+          "level": "perfect"
+        },
+        "sealed_tests": {
+          "total": 5,
+          "passed": 5,
+          "failed": 0
+        },
+        "failures": []
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "edge-all-fail",
+      "description": "All sealed tests fail \u2192 100% critical",
+      "input": {
+        "sealed_inline": {
+          "tests": [
+            {
+              "name": "test_0",
+              "status": "failed",
+              "category": "security",
+              "expected": "x",
+              "actual": "y",
+              "message": "fail 0"
+            },
+            {
+              "name": "test_1",
+              "status": "failed",
+              "category": "security",
+              "expected": "x",
+              "actual": "y",
+              "message": "fail 1"
+            },
+            {
+              "name": "test_2",
+              "status": "failed",
+              "category": "security",
+              "expected": "x",
+              "actual": "y",
+              "message": "fail 2"
+            },
+            {
+              "name": "test_3",
+              "status": "failed",
+              "category": "security",
+              "expected": "x",
+              "actual": "y",
+              "message": "fail 3"
+            }
+          ]
+        }
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 100.0,
+          "level": "critical"
+        },
+        "sealed_tests": {
+          "total": 4,
+          "passed": 0,
+          "failed": 4
+        },
+        "failures": [
+          {
+            "test_name": "test_0",
+            "category": "security",
+            "expected": "x",
+            "actual": "y",
+            "message": "fail 0"
+          },
+          {
+            "test_name": "test_1",
+            "category": "security",
+            "expected": "x",
+            "actual": "y",
+            "message": "fail 1"
+          },
+          {
+            "test_name": "test_2",
+            "category": "security",
+            "expected": "x",
+            "actual": "y",
+            "message": "fail 2"
+          },
+          {
+            "test_name": "test_3",
+            "category": "security",
+            "expected": "x",
+            "actual": "y",
+            "message": "fail 3"
+          }
+        ]
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "edge-single-pass",
+      "description": "One sealed test, passes \u2192 0% perfect",
+      "input": {
+        "sealed_inline": {
+          "tests": [
+            {
+              "name": "only_test",
+              "status": "passed",
+              "category": "happy_path"
+            }
+          ]
+        }
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 0.0,
+          "level": "perfect"
+        },
+        "sealed_tests": {
+          "total": 1,
+          "passed": 1,
+          "failed": 0
+        },
+        "failures": []
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "edge-single-fail",
+      "description": "One sealed test, fails \u2192 100% critical",
+      "input": {
+        "sealed_inline": {
+          "tests": [
+            {
+              "name": "only_test",
+              "status": "failed",
+              "category": "edge_case",
+              "expected": "a",
+              "actual": "b",
+              "message": "failed"
+            }
+          ]
+        }
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 100.0,
+          "level": "critical"
+        },
+        "sealed_tests": {
+          "total": 1,
+          "passed": 0,
+          "failed": 1
+        },
+        "failures": [
+          {
+            "test_name": "only_test",
+            "category": "edge_case",
+            "expected": "a",
+            "actual": "b",
+            "message": "failed"
+          }
+        ]
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "boundary-15-percent",
+      "description": "Exactly 15% (3/20) \u2192 minor (boundary)",
+      "input": {
+        "sealed_inline": {
+          "tests": [
+            {
+              "name": "test_0",
+              "status": "failed",
+              "category": "happy_path",
+              "expected": "x",
+              "actual": "y",
+              "message": "f"
+            },
+            {
+              "name": "test_1",
+              "status": "failed",
+              "category": "happy_path",
+              "expected": "x",
+              "actual": "y",
+              "message": "f"
+            },
+            {
+              "name": "test_2",
+              "status": "failed",
+              "category": "happy_path",
+              "expected": "x",
+              "actual": "y",
+              "message": "f"
+            },
+            {
+              "name": "test_3",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_4",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_5",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_6",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_7",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_8",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_9",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_10",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_11",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_12",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_13",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_14",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_15",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_16",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_17",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_18",
+              "status": "passed",
+              "category": "happy_path"
+            },
+            {
+              "name": "test_19",
+              "status": "passed",
+              "category": "happy_path"
+            }
+          ]
+        }
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 15.0,
+          "level": "minor"
+        },
+        "sealed_tests": {
+          "total": 20,
+          "passed": 17,
+          "failed": 3
+        },
+        "failures": [
+          {
+            "test_name": "test_0",
+            "category": "happy_path",
+            "expected": "x",
+            "actual": "y",
+            "message": "f"
+          },
+          {
+            "test_name": "test_1",
+            "category": "happy_path",
+            "expected": "x",
+            "actual": "y",
+            "message": "f"
+          },
+          {
+            "test_name": "test_2",
+            "category": "happy_path",
+            "expected": "x",
+            "actual": "y",
+            "message": "f"
+          }
+        ]
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "boundary-16-percent",
+      "description": "16% (4/25) \u2192 moderate (just above minor)",
+      "input": {
+        "sealed_inline": {
+          "tests": [
+            {
+              "name": "test_0",
+              "status": "failed",
+              "category": "error_handling",
+              "expected": "x",
+              "actual": "y",
+              "message": "f"
+            },
+            {
+              "name": "test_1",
+              "status": "failed",
+              "category": "error_handling",
+              "expected": "x",
+              "actual": "y",
+              "message": "f"
+            },
+            {
+              "name": "test_2",
+              "status": "failed",
+              "category": "error_handling",
+              "expected": "x",
+              "actual": "y",
+              "message": "f"
+            },
+            {
+              "name": "test_3",
+              "status": "failed",
+              "category": "error_handling",
+              "expected": "x",
+              "actual": "y",
+              "message": "f"
+            },
+            {
+              "name": "test_4",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_5",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_6",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_7",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_8",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_9",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_10",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_11",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_12",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_13",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_14",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_15",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_16",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_17",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_18",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_19",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_20",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_21",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_22",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_23",
+              "status": "passed",
+              "category": "error_handling"
+            },
+            {
+              "name": "test_24",
+              "status": "passed",
+              "category": "error_handling"
+            }
+          ]
+        }
+      },
+      "expected_output": {
+        "gap_score_spec_version": "1.0.0",
+        "report": {
+          "gap_score": 16.0,
+          "level": "moderate"
+        },
+        "sealed_tests": {
+          "total": 25,
+          "passed": 21,
+          "failed": 4
+        },
+        "failures": [
+          {
+            "test_name": "test_0",
+            "category": "error_handling",
+            "expected": "x",
+            "actual": "y",
+            "message": "f"
+          },
+          {
+            "test_name": "test_1",
+            "category": "error_handling",
+            "expected": "x",
+            "actual": "y",
+            "message": "f"
+          },
+          {
+            "test_name": "test_2",
+            "category": "error_handling",
+            "expected": "x",
+            "actual": "y",
+            "message": "f"
+          },
+          {
+            "test_name": "test_3",
+            "category": "error_handling",
+            "expected": "x",
+            "actual": "y",
+            "message": "f"
+          }
+        ]
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "threshold-under",
+      "description": "11.1% gap score with --threshold 15 \u2192 exit 0",
+      "input": {
+        "sealed": "examples/02-minor-gaps/sealed-results.json",
+        "threshold": 15
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "threshold-over",
+      "description": "11.1% gap score with --threshold 10 \u2192 exit 1",
+      "input": {
+        "sealed": "examples/02-minor-gaps/sealed-results.json",
+        "threshold": 10
+      },
+      "expected_exit_code": 1
+    },
+    {
+      "id": "threshold-exact",
+      "description": "11.1% gap score with --threshold 11.1 \u2192 exit 0 (not exceeded)",
+      "input": {
+        "sealed": "examples/02-minor-gaps/sealed-results.json",
+        "threshold": 11.1
+      },
+      "expected_exit_code": 0
+    },
+    {
+      "id": "threshold-zero",
+      "description": "60% gap score with --threshold 0 \u2192 exit 1",
+      "input": {
+        "sealed": "examples/03-critical-gaps/sealed-results.json",
+        "threshold": 0
+      },
+      "expected_exit_code": 1
+    },
+    {
+      "id": "threshold-zero-perfect",
+      "description": "0% gap score with --threshold 0 \u2192 exit 0",
+      "input": {
+        "sealed": "examples/01-perfect-score/sealed-results.json",
+        "threshold": 0
+      },
+      "expected_exit_code": 0
+    }
+  ]
+}
