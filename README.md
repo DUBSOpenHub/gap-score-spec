@@ -38,6 +38,10 @@ Generate acceptance tests from the spec **before code exists**. Hide them from t
 # Python
 python validators/gap-score.py --sealed results-sealed.json --open results-open.json
 
+# Go
+cd validators && go build -o gap-score-go . && cd ..
+./validators/gap-score-go --sealed results-sealed.json --open results-open.json
+
 # Shell (minimal deps)
 ./validators/gap-score.sh results-sealed.txt results-open.txt
 ```
