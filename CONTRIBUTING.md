@@ -56,7 +56,7 @@ python validators/gap-score.py \
 
 ## Code of Conduct
 
-Be respectful, constructive, and collaborative. We're building an open standard -- thoughtful disagreement is welcome, personal attacks are not.
+Be respectful, constructive, and collaborative. We're building an open standard — thoughtful disagreement is welcome, personal attacks are not.
 
 ## License
 

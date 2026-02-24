@@ -4,8 +4,8 @@ Black-box conformance tests for Gap Score validators. Any validator implementing
 
 ## What's Here
 
-- **`fixtures.json`** -- 18 test fixtures with input, expected JSON output, and expected exit codes
-- **`run_conformance.py`** -- Runner that tests any validator CLI against the fixtures
+- **`fixtures.json`** — 18 test fixtures with input, expected JSON output, and expected exit codes
+- **`run_conformance.py`** — Runner that tests any validator CLI against the fixtures
 
 ## Fixture Categories
 
@@ -35,8 +35,8 @@ python tests/conformance/run_conformance.py --validator "./my-validator" -v
 
 Your validator is conformant if `run_conformance.py` reports all 18 fixtures passing. The runner checks:
 
-1. **JSON output** -- `gap_score`, `level`, `sealed_tests` counts, failure count, `coverage_comparison` keys
-2. **Exit codes** -- `0` when under threshold (or no threshold), `1` when exceeded
+1. **JSON output** — `gap_score`, `level`, `sealed_tests` counts, failure count, `coverage_comparison` keys
+2. **Exit codes** — `0` when under threshold (or no threshold), `1` when exceeded
 
 Required CLI interface:
 ```

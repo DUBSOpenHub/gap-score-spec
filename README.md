@@ -10,7 +10,7 @@
 
 ## The Problem
 
-AI coding tools write code and tests together. The tests always pass -- but they only validate what the AI *thought* to check, not what the *specification actually requires*. There's no independent quality signal.
+AI coding tools write code and tests together. The tests always pass — but they only validate what the AI *thought* to check, not what the *specification actually requires*. There's no independent quality signal.
 
 ## The Solution
 
@@ -18,16 +18,16 @@ AI coding tools write code and tests together. The tests always pass -- but they
 Gap Score = (sealed_failures / sealed_total) × 100
 ```
 
-Generate acceptance tests from the spec **before code exists**. Hide them from the AI. Build the code. Then run both test suites. The delta is your **Gap Score** -- an adversarial, quantitative measure of implementation quality.
+Generate acceptance tests from the spec **before code exists**. Hide them from the AI. Build the code. Then run both test suites. The delta is your **Gap Score** — an adversarial, quantitative measure of implementation quality.
 
 ## Interpretation Scale
 
 | Score | Level | Meaning |
 |-------|-------|---------|
 | 0% | ✅ Perfect | Implementation tests covered everything |
-| 1–15% | 🟢 Minor | Small blind spots -- edge cases |
+| 1–15% | 🟢 Minor | Small blind spots — edge cases |
 | 16–30% | 🟡 Moderate | Meaningful gaps in coverage |
-| 31–50% | 🟠 Significant | Major gaps -- review approach |
+| 31–50% | 🟠 Significant | Major gaps — review approach |
 | >50% | 🔴 Critical | Fundamental quality issues |
 
 ## Quick Start: Add Gap Score in 5 Minutes
@@ -49,26 +49,26 @@ cd validators && go build -o gap-score-go . && cd ..
 ### Option B: Compute it yourself
 
 1. **Write sealed tests** from your spec (requirements → test cases, before code exists)
-2. **Build the code** -- the implementer never sees the sealed tests
-3. **Run both suites** -- sealed tests and the implementer's own tests
+2. **Build the code** — the implementer never sees the sealed tests
+3. **Run both suites** — sealed tests and the implementer's own tests
 4. **Compute**: `failed_sealed / total_sealed × 100`
 5. **Report**: Use the [JSON schema](validators/gap-report-schema.json) or markdown format
 
-That's it. Framework, language, and tooling don't matter -- Gap Score works anywhere.
+That's it. Framework, language, and tooling don't matter — Gap Score works anywhere.
 
 ## The Sealed-Envelope Protocol
 
-Gap Score is computed using the **Sealed-Envelope Protocol** -- a 4-phase testing methodology:
+Gap Score is computed using the **Sealed-Envelope Protocol** — a 4-phase testing methodology:
 
 ```
  SPEC ──► SEAL GENERATION ──► IMPLEMENTATION ──► VALIDATION ──► HARDENING
            (tests from spec,     (code + own        (run both      (fix from
             hidden from          tests, never       suites,       failure msgs
-            implementer)         sees sealed)       compute gap)   only -- no
+            implementer)         sees sealed)       compute gap)   only — no
                                                                   test code)
 ```
 
-**The critical rule:** The implementer **never sees** the sealed tests. During hardening, they receive only failure messages (test name, expected, actual) -- never the test source code. This forces root-cause fixes, not test-targeting hacks.
+**The critical rule:** The implementer **never sees** the sealed tests. During hardening, they receive only failure messages (test name, expected, actual) — never the test source code. This forces root-cause fixes, not test-targeting hacks.
 
 Full protocol details: [**SPEC.md §4**](SPEC.md#4-sealed-envelope-protocol)
 
@@ -76,21 +76,21 @@ Full protocol details: [**SPEC.md §4**](SPEC.md#4-sealed-envelope-protocol)
 
 | Level | What's Required | Use Case |
 |-------|----------------|----------|
-| **L1** -- Gap Score | Compute + report Gap Score | Retrofitting onto existing test suites |
-| **L2** -- Sealed Envelope | L1 + test isolation + tamper hash | AI agent pipelines |
-| **L3** -- Full Protocol | L2 + hardening loop + velocity tracking | Production autonomous builds |
+| **L1** — Gap Score | Compute + report Gap Score | Retrofitting onto existing test suites |
+| **L2** — Sealed Envelope | L1 + test isolation + tamper hash | AI agent pipelines |
+| **L3** — Full Protocol | L2 + hardening loop + velocity tracking | Production autonomous builds |
 
 ## Reference Implementation
 
-The reference Level 3 implementation is **[Dark Factory](https://github.com/DUBSOpenHub/dark-factory)** -- an autonomous agentic build system for the GitHub Copilot CLI with sealed-envelope testing.
+The reference Level 3 implementation is **[Dark Factory](https://github.com/DUBSOpenHub/dark-factory)** — an autonomous agentic build system for the GitHub Copilot CLI with sealed-envelope testing.
 
 ## Worked Examples
 
 | Example | Gap Score | What Happened |
 |---------|-----------|---------------|
-| [01 -- Perfect Score](examples/01-perfect-score/) | 0% ✅ | All sealed tests passed |
-| [02 -- Minor Gaps](examples/02-minor-gaps/) | 11.1% 🟢 | 2 edge cases missed |
-| [03 -- Critical Gaps](examples/03-critical-gaps/) | 60% 🔴 | Only happy path tested |
+| [01 — Perfect Score](examples/01-perfect-score/) | 0% ✅ | All sealed tests passed |
+| [02 — Minor Gaps](examples/02-minor-gaps/) | 11.1% 🟢 | 2 edge cases missed |
+| [03 — Critical Gaps](examples/03-critical-gaps/) | 60% 🔴 | Only happy path tested |
 
 ## Reporting Format
 
@@ -124,7 +124,7 @@ Full schema: [**SPEC.md §5**](SPEC.md#5-reporting-format)
 
 | Project | Conformance | Description |
 |---------|-------------|-------------|
-| [Dark Factory](https://github.com/DUBSOpenHub/dark-factory) | Level 3 | Reference implementation -- autonomous agentic build system |
+| [Dark Factory](https://github.com/DUBSOpenHub/dark-factory) | Level 3 | Reference implementation — autonomous agentic build system |
 
 *Using Gap Score? [Open a PR](https://github.com/DUBSOpenHub/gap-score-spec/pulls) to add your project.*
 

@@ -23,9 +23,9 @@ If you discover a security vulnerability in the Gap Score reference validators o
 ### Scope
 
 This security policy covers:
-- **Reference validators** (`validators/gap-score.py`, `validators/gap-score.sh`) -- e.g., input injection, path traversal
-- **JSON Schema** (`validators/gap-report-schema.json`) -- e.g., schema bypass enabling malicious payloads
-- **Specification** (`SPEC.md`) -- e.g., protocol weaknesses that could allow gaming the Gap Score
+- **Reference validators** (`validators/gap-score.py`, `validators/gap-score.sh`) — e.g., input injection, path traversal
+- **JSON Schema** (`validators/gap-report-schema.json`) — e.g., schema bypass enabling malicious payloads
+- **Specification** (`SPEC.md`) — e.g., protocol weaknesses that could allow gaming the Gap Score
 
 ### Out of Scope
 
