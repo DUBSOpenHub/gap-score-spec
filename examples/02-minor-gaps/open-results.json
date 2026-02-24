@@ -1,0 +1,16 @@
+{
+  "tests": [
+    {"name": "test_scan_finds_mit", "status": "passed", "category": "happy_path"},
+    {"name": "test_scan_finds_apache", "status": "passed", "category": "happy_path"},
+    {"name": "test_scan_no_license", "status": "passed", "category": "happy_path"},
+    {"name": "test_scan_multiple", "status": "passed", "category": "happy_path"},
+    {"name": "test_nested_scanning", "status": "passed", "category": "happy_path"},
+    {"name": "test_spdx_output", "status": "passed", "category": "happy_path"},
+    {"name": "test_empty_dir", "status": "passed", "category": "edge_case"},
+    {"name": "test_binary_skip", "status": "passed", "category": "edge_case"},
+    {"name": "test_large_repo", "status": "passed", "category": "edge_case"},
+    {"name": "test_bad_json", "status": "passed", "category": "error_handling"},
+    {"name": "test_file_not_found", "status": "passed", "category": "error_handling"},
+    {"name": "test_timeout_handling", "status": "passed", "category": "error_handling"}
+  ]
+}

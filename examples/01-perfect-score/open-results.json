@@ -1,0 +1,12 @@
+{
+  "tests": [
+    {"name": "test_fib_basic", "status": "passed", "category": "happy_path"},
+    {"name": "test_fib_zero_returns_zero", "status": "passed", "category": "happy_path"},
+    {"name": "test_fib_one_returns_one", "status": "passed", "category": "happy_path"},
+    {"name": "test_fib_sequence", "status": "passed", "category": "happy_path"},
+    {"name": "test_fib_negative_raises", "status": "passed", "category": "error_handling"},
+    {"name": "test_fib_string_input_raises", "status": "passed", "category": "error_handling"},
+    {"name": "test_fib_float_input_raises", "status": "passed", "category": "error_handling"},
+    {"name": "test_fib_large_number", "status": "passed", "category": "edge_case"}
+  ]
+}

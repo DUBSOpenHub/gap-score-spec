@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {"name": "test_scan_mit_license", "status": "passed", "category": "happy_path"},
+    {"name": "test_scan_apache_license", "status": "passed", "category": "happy_path"},
+    {"name": "test_scan_unlicensed_repo", "status": "passed", "category": "happy_path"},
+    {"name": "test_scan_multiple_licenses", "status": "passed", "category": "happy_path"},
+    {"name": "test_scan_nested_deps", "status": "passed", "category": "happy_path"},
+    {"name": "test_scan_monorepo", "status": "passed", "category": "happy_path"},
+    {"name": "test_empty_directory", "status": "passed", "category": "edge_case"},
+    {"name": "test_binary_file_skipped", "status": "passed", "category": "edge_case"},
+    {"name": "test_symlink_handling", "status": "passed", "category": "edge_case"},
+    {"name": "test_unicode_license_text", "status": "passed", "category": "edge_case"},
+    {"name": "test_very_large_repo", "status": "passed", "category": "edge_case"},
+    {"name": "test_malformed_package_json", "status": "passed", "category": "error_handling"},
+    {"name": "test_network_timeout", "status": "passed", "category": "error_handling"},
+    {"name": "test_permission_denied", "status": "passed", "category": "error_handling"},
+    {"name": "test_circular_dependency", "status": "passed", "category": "error_handling"},
+    {"name": "test_rejects_gpl_dependency", "status": "failed", "category": "security", "expected": "CLI exits with code 2", "actual": "CLI exits with code 0", "message": "GPL dependency not blocked"},
+    {"name": "test_csv_report_includes_risk", "status": "failed", "category": "edge_case", "expected": "CSV contains risk column", "actual": "Column missing", "message": "Report missing risk metadata"},
+    {"name": "test_spdx_expression_parsing", "status": "passed", "category": "happy_path"}
+  ]
+}

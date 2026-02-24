@@ -1,0 +1,8 @@
+{
+  "tests": [
+    {"name": "test_register_success", "status": "passed", "category": "happy_path"},
+    {"name": "test_register_returns_json", "status": "passed", "category": "happy_path"},
+    {"name": "test_register_persists_user", "status": "passed", "category": "happy_path"},
+    {"name": "test_unicode_name", "status": "passed", "category": "edge_case"}
+  ]
+}

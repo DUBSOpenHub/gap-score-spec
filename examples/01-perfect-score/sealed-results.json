@@ -1,0 +1,9 @@
+{
+  "tests": [
+    {"name": "test_fib_zero", "status": "passed", "category": "happy_path"},
+    {"name": "test_fib_one", "status": "passed", "category": "happy_path"},
+    {"name": "test_fib_ten", "status": "passed", "category": "happy_path"},
+    {"name": "test_fib_negative", "status": "passed", "category": "error_handling"},
+    {"name": "test_fib_large_input", "status": "passed", "category": "edge_case"}
+  ]
+}

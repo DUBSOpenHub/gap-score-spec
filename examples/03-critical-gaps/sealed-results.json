@@ -1,0 +1,19 @@
+{
+  "tests": [
+    {"name": "test_register_user_success", "status": "passed", "category": "happy_path"},
+    {"name": "test_register_returns_user_id", "status": "passed", "category": "happy_path"},
+    {"name": "test_register_hashes_password", "status": "failed", "category": "security", "expected": "Password stored as bcrypt hash", "actual": "Password stored in plaintext", "message": "Passwords not hashed before storage"},
+    {"name": "test_duplicate_email_returns_409", "status": "failed", "category": "error_handling", "expected": "HTTP 409 Conflict", "actual": "HTTP 500 Internal Server Error", "message": "Duplicate email causes unhandled database error"},
+    {"name": "test_invalid_email_rejected", "status": "failed", "category": "error_handling", "expected": "HTTP 400 with validation error", "actual": "HTTP 201 Created", "message": "Invalid email format accepted without validation"},
+    {"name": "test_empty_password_rejected", "status": "failed", "category": "error_handling", "expected": "HTTP 400", "actual": "HTTP 201", "message": "Empty password accepted"},
+    {"name": "test_password_min_length", "status": "failed", "category": "edge_case", "expected": "HTTP 400 for password < 8 chars", "actual": "HTTP 201", "message": "Short password accepted"},
+    {"name": "test_sql_injection_in_email", "status": "failed", "category": "security", "expected": "Input sanitized, no SQL execution", "actual": "SQL error in response", "message": "SQL injection possible via email field"},
+    {"name": "test_rate_limiting", "status": "failed", "category": "security", "expected": "HTTP 429 after 10 requests/min", "actual": "HTTP 201", "message": "No rate limiting on registration endpoint"},
+    {"name": "test_response_excludes_password", "status": "failed", "category": "security", "expected": "Response body has no password field", "actual": "Password visible in response", "message": "Password leaked in API response"},
+    {"name": "test_unicode_name_accepted", "status": "passed", "category": "edge_case"},
+    {"name": "test_max_length_fields", "status": "passed", "category": "edge_case"},
+    {"name": "test_concurrent_registration", "status": "failed", "category": "edge_case", "expected": "One succeeds, one gets 409", "actual": "Both succeed with same email", "message": "Race condition allows duplicate registration"},
+    {"name": "test_email_case_insensitive", "status": "passed", "category": "edge_case"},
+    {"name": "test_cors_headers_present", "status": "passed", "category": "happy_path"}
+  ]
+}
