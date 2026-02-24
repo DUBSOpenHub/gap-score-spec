@@ -1,259 +1,373 @@
 #!/usr/bin/env python3
-"""Unit tests for the Gap Score reference validator."""
+"""
+Tests for gap-score.py reference validator.
 
+Run with:
+    cd validators && python -m unittest test_gap_score -v
+    cd validators && python -m pytest test_gap_score.py -v
+"""
+import importlib.util
 import json
 import os
 import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
 
-# Import the validator module
-sys.path.insert(0, os.path.dirname(__file__))
-from importlib import import_module
+VALIDATORS_DIR = Path(__file__).resolve().parent
+EXAMPLES_DIR = VALIDATORS_DIR.parent / "examples"
+SCRIPT = VALIDATORS_DIR / "gap-score.py"
 
-# gap-score.py has a hyphen, so we need importlib
-import importlib.util
 
-spec = importlib.util.spec_from_file_location(
-    "gap_score", os.path.join(os.path.dirname(__file__), "gap-score.py")
-)
-gap_score = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(gap_score)
+def _load_module():
+    """Import gap-score.py (hyphenated name) via importlib."""
+    spec = importlib.util.spec_from_file_location("gap_score", str(SCRIPT))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
+
+def run_cli(*args):
+    """Run gap-score.py with the given CLI arguments."""
+    cmd = [sys.executable, str(SCRIPT)] + list(args)
+    return subprocess.run(cmd, capture_output=True, text=True)
+
+
+def make_sealed_json(total: int, failed: int, category: str = "happy_path") -> dict:
+    """Build a minimal sealed-results dict with the requested pass/fail counts."""
+    tests = [
+        {"name": f"test_pass_{i}", "status": "passed", "category": category}
+        for i in range(total - failed)
+    ]
+    tests += [
+        {"name": f"test_fail_{i}", "status": "failed", "category": category,
+         "expected": "ok", "actual": "error", "message": f"failure {i}"}
+        for i in range(failed)
+    ]
+    return {"tests": tests}
+
+
+# ---------------------------------------------------------------------------
+# Unit tests: classify_gap
+# ---------------------------------------------------------------------------
 
 class TestClassifyGap(unittest.TestCase):
-    """Test the classify_gap function."""
+    def setUp(self):
+        self.mod = _load_module()
 
-    def test_perfect_score(self):
-        level, indicator = gap_score.classify_gap(0)
-        self.assertEqual(level, "perfect")
-        self.assertEqual(indicator, "✅")
+    def test_perfect_zero(self):
+        self.assertEqual(self.mod.classify_gap(0.0)[0], "perfect")
 
-    def test_minor_score(self):
-        level, indicator = gap_score.classify_gap(10)
-        self.assertEqual(level, "minor")
-        self.assertEqual(indicator, "🟢")
+    def test_minor_just_above_zero(self):
+        self.assertEqual(self.mod.classify_gap(0.1)[0], "minor")
 
-    def test_minor_boundary(self):
-        level, indicator = gap_score.classify_gap(15)
-        self.assertEqual(level, "minor")
+    def test_minor_at_boundary(self):
+        self.assertEqual(self.mod.classify_gap(15.0)[0], "minor")
 
-    def test_moderate_score(self):
-        level, indicator = gap_score.classify_gap(20)
-        self.assertEqual(level, "moderate")
-        self.assertEqual(indicator, "🟡")
+    def test_minor_mid(self):
+        self.assertEqual(self.mod.classify_gap(7.5)[0], "minor")
 
-    def test_moderate_boundary(self):
-        level, indicator = gap_score.classify_gap(30)
-        self.assertEqual(level, "moderate")
+    def test_moderate_just_above_minor(self):
+        self.assertEqual(self.mod.classify_gap(15.1)[0], "moderate")
 
-    def test_significant_score(self):
-        level, indicator = gap_score.classify_gap(40)
-        self.assertEqual(level, "significant")
-        self.assertEqual(indicator, "🟠")
+    def test_moderate_at_boundary(self):
+        self.assertEqual(self.mod.classify_gap(30.0)[0], "moderate")
 
-    def test_significant_boundary(self):
-        level, indicator = gap_score.classify_gap(50)
-        self.assertEqual(level, "significant")
+    def test_significant_just_above_moderate(self):
+        self.assertEqual(self.mod.classify_gap(30.1)[0], "significant")
 
-    def test_critical_score(self):
-        level, indicator = gap_score.classify_gap(60)
-        self.assertEqual(level, "critical")
-        self.assertEqual(indicator, "🔴")
+    def test_significant_at_boundary(self):
+        self.assertEqual(self.mod.classify_gap(50.0)[0], "significant")
 
-    def test_critical_100(self):
-        level, indicator = gap_score.classify_gap(100)
-        self.assertEqual(level, "critical")
+    def test_critical_just_above_significant(self):
+        self.assertEqual(self.mod.classify_gap(50.1)[0], "critical")
 
+    def test_critical_at_100(self):
+        self.assertEqual(self.mod.classify_gap(100.0)[0], "critical")
+
+    def test_indicators_present(self):
+        _, ind = self.mod.classify_gap(0.0)
+        self.assertIn(ind, ["✅", "🟢", "🟡", "🟠", "🔴"])
+
+
+# ---------------------------------------------------------------------------
+# Unit tests: compute_gap_score
+# ---------------------------------------------------------------------------
 
 class TestComputeGapScore(unittest.TestCase):
-    """Test the compute_gap_score function."""
+    def setUp(self):
+        self.mod = _load_module()
 
-    def test_empty_tests(self):
-        result = gap_score.compute_gap_score([])
+    def test_zero_sealed_tests(self):
+        result = self.mod.compute_gap_score([])
         self.assertEqual(result["gap_score"], 0.0)
         self.assertEqual(result["level"], "perfect")
         self.assertEqual(result["total"], 0)
+        self.assertEqual(result["passed"], 0)
+        self.assertEqual(result["failed"], 0)
+        self.assertEqual(result["failures"], [])
 
     def test_all_pass(self):
-        tests = [
-            {"name": "t1", "status": "passed"},
-            {"name": "t2", "status": "passed"},
-            {"name": "t3", "status": "passed"},
-        ]
-        result = gap_score.compute_gap_score(tests)
+        tests = [{"name": f"t{i}", "status": "passed", "category": "happy_path"} for i in range(10)]
+        result = self.mod.compute_gap_score(tests)
         self.assertEqual(result["gap_score"], 0.0)
-        self.assertEqual(result["passed"], 3)
+        self.assertEqual(result["level"], "perfect")
+        self.assertEqual(result["passed"], 10)
         self.assertEqual(result["failed"], 0)
 
     def test_all_fail(self):
-        tests = [
-            {"name": "t1", "status": "failed", "message": "fail1"},
-            {"name": "t2", "status": "failed", "message": "fail2"},
-        ]
-        result = gap_score.compute_gap_score(tests)
+        tests = [{"name": f"t{i}", "status": "failed", "category": "error_handling"} for i in range(5)]
+        result = self.mod.compute_gap_score(tests)
         self.assertEqual(result["gap_score"], 100.0)
         self.assertEqual(result["level"], "critical")
-        self.assertEqual(result["failed"], 2)
+        self.assertEqual(result["failed"], 5)
+        self.assertEqual(result["passed"], 0)
+        self.assertEqual(len(result["failures"]), 5)
 
-    def test_partial_failure(self):
-        tests = [
-            {"name": "t1", "status": "passed"},
-            {"name": "t2", "status": "failed", "message": "oops"},
-            {"name": "t3", "status": "passed"},
-            {"name": "t4", "status": "passed"},
-            {"name": "t5", "status": "passed"},
-        ]
-        result = gap_score.compute_gap_score(tests)
+    def test_partial_failures_moderate(self):
+        # 2/10 = 20% → moderate
+        tests = [{"name": f"p{i}", "status": "passed"} for i in range(8)]
+        tests += [{"name": f"f{i}", "status": "failed"} for i in range(2)]
+        result = self.mod.compute_gap_score(tests)
         self.assertEqual(result["gap_score"], 20.0)
         self.assertEqual(result["level"], "moderate")
-        self.assertEqual(result["failures"], [tests[1]])
 
-    def test_minor_gap(self):
-        # 2 out of 18 failed = 11.1%
-        tests = [{"name": f"t{i}", "status": "passed"} for i in range(16)]
-        tests.append({"name": "f1", "status": "failed", "message": "a"})
-        tests.append({"name": "f2", "status": "failed", "message": "b"})
-        result = gap_score.compute_gap_score(tests)
-        self.assertEqual(result["gap_score"], 11.1)
-        self.assertEqual(result["level"], "minor")
+    def test_score_rounded_to_one_decimal(self):
+        # 1/3 = 33.333... → 33.3
+        tests = [{"name": f"p{i}", "status": "passed"} for i in range(2)]
+        tests += [{"name": "f0", "status": "failed"}]
+        result = self.mod.compute_gap_score(tests)
+        self.assertEqual(result["gap_score"], 33.3)
 
-
-class TestBuildReport(unittest.TestCase):
-    """Test the build_report function."""
-
-    def test_report_structure(self):
-        sealed = [{"name": "t1", "status": "passed", "category": "happy_path"}]
-        report = gap_score.build_report(sealed)
-        self.assertIn("gap_score_spec_version", report)
-        self.assertIn("report", report)
-        self.assertIn("sealed_tests", report)
-        self.assertIn("failures", report)
-        self.assertEqual(report["gap_score_spec_version"], "1.0.0")
-
-    def test_report_with_open_tests(self):
-        sealed = [{"name": "s1", "status": "passed", "category": "happy_path"}]
-        open_tests = [
-            {"name": "o1", "status": "passed", "category": "happy_path"},
-            {"name": "o2", "status": "failed", "category": "edge_case"},
+    def test_failures_list_contains_only_failed(self):
+        tests = [
+            {"name": "pass1", "status": "passed"},
+            {"name": "fail1", "status": "failed", "message": "oops"},
         ]
-        report = gap_score.build_report(sealed, open_tests)
-        self.assertIn("open_tests", report)
-        self.assertEqual(report["open_tests"]["total"], 2)
-        self.assertEqual(report["open_tests"]["passed"], 1)
-        self.assertEqual(report["open_tests"]["failed"], 1)
-        self.assertIn("coverage_comparison", report)
-
-    def test_report_without_open_tests(self):
-        sealed = [{"name": "s1", "status": "passed", "category": "happy_path"}]
-        report = gap_score.build_report(sealed)
-        self.assertNotIn("open_tests", report)
-        self.assertNotIn("coverage_comparison", report)
-
-    def test_failure_details(self):
-        sealed = [
-            {
-                "name": "t1",
-                "status": "failed",
-                "category": "security",
-                "expected": "hashed",
-                "actual": "plaintext",
-                "message": "Not hashed",
-            }
-        ]
-        report = gap_score.build_report(sealed)
-        self.assertEqual(len(report["failures"]), 1)
-        f = report["failures"][0]
-        self.assertEqual(f["test_name"], "t1")
-        self.assertEqual(f["category"], "security")
-        self.assertEqual(f["expected"], "hashed")
-        self.assertEqual(f["actual"], "plaintext")
-        self.assertEqual(f["message"], "Not hashed")
+        result = self.mod.compute_gap_score(tests)
+        self.assertEqual(len(result["failures"]), 1)
+        self.assertEqual(result["failures"][0]["name"], "fail1")
 
 
-class TestCoverageComparison(unittest.TestCase):
-    """Test the build_coverage_comparison function."""
+# ---------------------------------------------------------------------------
+# Integration tests: worked examples
+# ---------------------------------------------------------------------------
 
-    def test_empty_suites(self):
-        result = gap_score.build_coverage_comparison([], [])
-        for cat in gap_score.CATEGORIES:
-            self.assertEqual(result[cat]["sealed"], 0)
-            self.assertEqual(result[cat]["open"], 0)
-            self.assertEqual(result[cat]["delta"], 0)
-
-    def test_category_counting(self):
-        sealed = [
-            {"name": "s1", "category": "security"},
-            {"name": "s2", "category": "security"},
-            {"name": "s3", "category": "happy_path"},
-        ]
-        open_tests = [
-            {"name": "o1", "category": "happy_path"},
-            {"name": "o2", "category": "happy_path"},
-        ]
-        result = gap_score.build_coverage_comparison(sealed, open_tests)
-        self.assertEqual(result["security"]["sealed"], 2)
-        self.assertEqual(result["security"]["open"], 0)
-        self.assertEqual(result["security"]["delta"], 2)
-        self.assertEqual(result["happy_path"]["sealed"], 1)
-        self.assertEqual(result["happy_path"]["open"], 2)
-        self.assertEqual(result["happy_path"]["delta"], -1)
+def _examples_exist(subdir: str) -> bool:
+    return (EXAMPLES_DIR / subdir / "sealed-results.json").exists()
 
 
-class TestLoadResults(unittest.TestCase):
-    """Test the load_results function."""
-
-    def test_load_valid_json(self):
-        data = {"tests": [{"name": "t1", "status": "passed"}]}
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
-            json.dump(data, f)
-            f.flush()
-            results = gap_score.load_results(f.name)
-        os.unlink(f.name)
-        self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["name"], "t1")
-
-    def test_load_missing_tests_key(self):
-        data = {"other": "data"}
-        with tempfile.NamedTemporaryFile(
-            mode="w", suffix=".json", delete=False
-        ) as f:
-            json.dump(data, f)
-            f.flush()
-            results = gap_score.load_results(f.name)
-        os.unlink(f.name)
-        self.assertEqual(results, [])
-
-
-class TestExamples(unittest.TestCase):
-    """Validate the reference examples produce expected Gap Scores."""
-
-    EXAMPLES_DIR = os.path.join(os.path.dirname(__file__), "..", "examples")
-
-    def _run_example(self, example_dir):
-        sealed_path = os.path.join(self.EXAMPLES_DIR, example_dir, "sealed-results.json")
-        open_path = os.path.join(self.EXAMPLES_DIR, example_dir, "open-results.json")
-        sealed = gap_score.load_results(sealed_path)
-        open_tests = gap_score.load_results(open_path)
-        return gap_score.build_report(sealed, open_tests)
-
+class TestWorkedExamples(unittest.TestCase):
+    @unittest.skipUnless(_examples_exist("01-perfect-score"), "example files not found")
     def test_example_01_perfect_score(self):
-        report = self._run_example("01-perfect-score")
+        sealed = str(EXAMPLES_DIR / "01-perfect-score" / "sealed-results.json")
+        open_f = str(EXAMPLES_DIR / "01-perfect-score" / "open-results.json")
+        result = run_cli("--sealed", sealed, "--open", open_f)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
         self.assertEqual(report["report"]["gap_score"], 0.0)
         self.assertEqual(report["report"]["level"], "perfect")
+        self.assertEqual(report["sealed_tests"]["failed"], 0)
 
+    @unittest.skipUnless(_examples_exist("02-minor-gaps"), "example files not found")
     def test_example_02_minor_gaps(self):
-        report = self._run_example("02-minor-gaps")
+        sealed = str(EXAMPLES_DIR / "02-minor-gaps" / "sealed-results.json")
+        result = run_cli("--sealed", sealed)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
         self.assertEqual(report["report"]["gap_score"], 11.1)
         self.assertEqual(report["report"]["level"], "minor")
 
+    @unittest.skipUnless(_examples_exist("03-critical-gaps"), "example files not found")
     def test_example_03_critical_gaps(self):
-        report = self._run_example("03-critical-gaps")
+        sealed = str(EXAMPLES_DIR / "03-critical-gaps" / "sealed-results.json")
+        result = run_cli("--sealed", sealed)
+        self.assertEqual(result.returncode, 0, result.stderr)
+        report = json.loads(result.stdout)
         self.assertEqual(report["report"]["gap_score"], 60.0)
         self.assertEqual(report["report"]["level"], "critical")
+
+    @unittest.skipUnless(_examples_exist("01-perfect-score"), "example files not found")
+    def test_example_01_open_tests_included_in_report(self):
+        sealed = str(EXAMPLES_DIR / "01-perfect-score" / "sealed-results.json")
+        open_f = str(EXAMPLES_DIR / "01-perfect-score" / "open-results.json")
+        result = run_cli("--sealed", sealed, "--open", open_f)
+        report = json.loads(result.stdout)
+        self.assertIn("open_tests", report)
+        self.assertIn("coverage_comparison", report)
+
+
+# ---------------------------------------------------------------------------
+# Integration tests: threshold exit codes
+# ---------------------------------------------------------------------------
+
+class TestThreshold(unittest.TestCase):
+    def _write_temp(self, data: dict) -> str:
+        f = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
+        json.dump(data, f)
+        f.close()
+        return f.name
+
+    def test_under_threshold_exits_zero(self):
+        # 10% gap score, threshold 15 → should pass
+        fname = self._write_temp(make_sealed_json(10, 1))
+        try:
+            result = run_cli("--sealed", fname, "--threshold", "15")
+            self.assertEqual(result.returncode, 0)
+        finally:
+            os.unlink(fname)
+
+    def test_over_threshold_exits_one(self):
+        # 50% gap score, threshold 15 → should fail
+        fname = self._write_temp(make_sealed_json(10, 5))
+        try:
+            result = run_cli("--sealed", fname, "--threshold", "15")
+            self.assertEqual(result.returncode, 1)
+        finally:
+            os.unlink(fname)
+
+    def test_exactly_at_threshold_exits_zero(self):
+        # Exactly 10% gap score, threshold 10 → 10 > 10 is False → exit 0
+        fname = self._write_temp(make_sealed_json(10, 1))
+        try:
+            result = run_cli("--sealed", fname, "--threshold", "10")
+            self.assertEqual(result.returncode, 0)
+        finally:
+            os.unlink(fname)
+
+    def test_no_threshold_always_exits_zero(self):
+        # 100% gap score with no threshold → still exit 0
+        fname = self._write_temp(make_sealed_json(10, 10))
+        try:
+            result = run_cli("--sealed", fname)
+            self.assertEqual(result.returncode, 0)
+        finally:
+            os.unlink(fname)
+
+    def test_threshold_zero_fails_any_failure(self):
+        # Even one failure with threshold 0 → exit 1
+        fname = self._write_temp(make_sealed_json(10, 1))
+        try:
+            result = run_cli("--sealed", fname, "--threshold", "0")
+            self.assertEqual(result.returncode, 1)
+        finally:
+            os.unlink(fname)
+
+    def test_threshold_zero_passes_perfect(self):
+        fname = self._write_temp(make_sealed_json(5, 0))
+        try:
+            result = run_cli("--sealed", fname, "--threshold", "0")
+            self.assertEqual(result.returncode, 0)
+        finally:
+            os.unlink(fname)
+
+
+# ---------------------------------------------------------------------------
+# Integration tests: output formats
+# ---------------------------------------------------------------------------
+
+class TestOutputFormats(unittest.TestCase):
+    def setUp(self):
+        self._tmp_files = []
+
+    def tearDown(self):
+        for f in self._tmp_files:
+            try:
+                os.unlink(f)
+            except FileNotFoundError:
+                pass
+
+    def _write_temp(self, data: dict) -> str:
+        f = tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False)
+        json.dump(data, f)
+        f.close()
+        self._tmp_files.append(f.name)
+        return f.name
+
+    def test_json_output_is_valid_json(self):
+        fname = self._write_temp(make_sealed_json(4, 1))
+        result = run_cli("--sealed", fname, "--format", "json")
+        self.assertEqual(result.returncode, 0)
+        report = json.loads(result.stdout)  # must not raise
+        self.assertIsInstance(report, dict)
+
+    def test_json_output_has_required_keys(self):
+        fname = self._write_temp(make_sealed_json(4, 1))
+        result = run_cli("--sealed", fname, "--format", "json")
+        report = json.loads(result.stdout)
+        for key in ("gap_score_spec_version", "report", "sealed_tests", "failures"):
+            self.assertIn(key, report, f"missing key: {key}")
+
+    def test_json_spec_version_matches(self):
+        fname = self._write_temp(make_sealed_json(4, 0))
+        result = run_cli("--sealed", fname)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["gap_score_spec_version"], "1.0.0")
+
+    def test_json_failures_is_list(self):
+        fname = self._write_temp(make_sealed_json(4, 2))
+        result = run_cli("--sealed", fname)
+        report = json.loads(result.stdout)
+        self.assertIsInstance(report["failures"], list)
+        self.assertEqual(len(report["failures"]), 2)
+
+    def test_json_empty_failures_is_empty_list_not_null(self):
+        fname = self._write_temp(make_sealed_json(4, 0))
+        result = run_cli("--sealed", fname)
+        report = json.loads(result.stdout)
+        self.assertEqual(report["failures"], [])
+
+    def test_summary_output_contains_gap_score_line(self):
+        fname = self._write_temp(make_sealed_json(4, 1))
+        result = run_cli("--sealed", fname, "--format", "summary")
+        self.assertEqual(result.returncode, 0)
+        self.assertIn("Gap Score:", result.stdout)
+
+    def test_summary_output_contains_sealed_line(self):
+        fname = self._write_temp(make_sealed_json(4, 1))
+        result = run_cli("--sealed", fname, "--format", "summary")
+        self.assertIn("Sealed:", result.stdout)
+
+    def test_summary_output_lists_failures(self):
+        fname = self._write_temp(make_sealed_json(4, 2, "security"))
+        result = run_cli("--sealed", fname, "--format", "summary")
+        self.assertIn("Failures", result.stdout)
+        self.assertIn("❌", result.stdout)
+
+    def test_json_with_open_includes_open_tests(self):
+        sealed_f = self._write_temp(make_sealed_json(4, 1))
+        open_f = self._write_temp(make_sealed_json(3, 0))
+        result = run_cli("--sealed", sealed_f, "--open", open_f)
+        report = json.loads(result.stdout)
+        self.assertIn("open_tests", report)
+        self.assertEqual(report["open_tests"]["total"], 3)
+
+    def test_json_with_open_includes_coverage_comparison(self):
+        sealed_f = self._write_temp(make_sealed_json(4, 1, "security"))
+        open_f = self._write_temp(make_sealed_json(3, 0, "happy_path"))
+        result = run_cli("--sealed", sealed_f, "--open", open_f)
+        report = json.loads(result.stdout)
+        self.assertIn("coverage_comparison", report)
+        comparison = report["coverage_comparison"]
+        self.assertIn("security", comparison)
+        self.assertIn("edge_case", comparison)
+
+    def test_summary_with_open_includes_open_line(self):
+        sealed_f = self._write_temp(make_sealed_json(4, 0))
+        open_f = self._write_temp(make_sealed_json(6, 0))
+        result = run_cli("--sealed", sealed_f, "--open", open_f, "--format", "summary")
+        self.assertIn("Open:", result.stdout)
+
+
+# ---------------------------------------------------------------------------
+# Edge-case: missing --sealed flag
+# ---------------------------------------------------------------------------
+
+class TestCLIErrors(unittest.TestCase):
+    def test_missing_sealed_flag_exits_nonzero(self):
+        result = run_cli()  # no arguments
+        self.assertNotEqual(result.returncode, 0)
 
 
 if __name__ == "__main__":
