@@ -22,7 +22,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Run unit tests
-        run: python -m pytest validators/test_gap_score.py -v
+        run: python -m unittest discover -s validators -p 'test_*.py' -v
 
       - name: Validate Example 01 — Perfect Score
         run: |
