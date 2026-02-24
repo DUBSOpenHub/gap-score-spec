@@ -96,7 +96,7 @@
       "description": "Category-level comparison between sealed and open tests",
       "properties": {
         "happy_path": { "$ref": "#/definitions/category_comparison" },
-        "edge_cases": { "$ref": "#/definitions/category_comparison" },
+        "edge_case": { "$ref": "#/definitions/category_comparison" },
         "error_handling": { "$ref": "#/definitions/category_comparison" },
         "security": { "$ref": "#/definitions/category_comparison" }
       }

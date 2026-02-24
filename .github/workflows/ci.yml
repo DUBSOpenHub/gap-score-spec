@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.10', '3.11', '3.12']
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run unit tests
+        run: python -m pytest validators/test_gap_score.py -v
+
+      - name: Validate Example 01 — Perfect Score
+        run: |
+          python validators/gap-score.py \
+            --sealed examples/01-perfect-score/sealed-results.json \
+            --open examples/01-perfect-score/open-results.json \
+            --format summary \
+            --threshold 0
+
+      - name: Validate Example 02 — Minor Gaps
+        run: |
+          python validators/gap-score.py \
+            --sealed examples/02-minor-gaps/sealed-results.json \
+            --open examples/02-minor-gaps/open-results.json \
+            --format summary \
+            --threshold 15
+
+      - name: Validate Example 03 — Critical Gaps (expect failure)
+        run: |
+          python validators/gap-score.py \
+            --sealed examples/03-critical-gaps/sealed-results.json \
+            --open examples/03-critical-gaps/open-results.json \
+            --format summary \
+            --threshold 50 && exit 1 || exit 0
+
+      - name: Validate JSON Schema syntax
+        run: python -c "import json; json.load(open('validators/gap-report-schema.json'))"
+
+      - name: Shell validator smoke test
+        run: |
+          chmod +x validators/gap-score.sh
+          validators/gap-score.sh 18 2
+          validators/gap-score.sh 5 0
+          validators/gap-score.sh 15 9
