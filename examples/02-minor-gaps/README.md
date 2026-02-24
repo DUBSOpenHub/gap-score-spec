@@ -1,4 +1,4 @@
-# Example 02 — Minor Gaps (11.1%)
+# Example 02 -- Minor Gaps (11.1%)
 
 **Scenario:** License scanner CLI tool  
 **Gap Score:** 11.1% 🟢 Minor
@@ -8,11 +8,11 @@
 The Implementer built solid core functionality with 12 tests covering happy path,
 edge cases, and error handling. However, the sealed suite caught two gaps:
 
-1. **`test_rejects_gpl_dependency`** — The scanner didn't block GPL-licensed
+1. **`test_rejects_gpl_dependency`** -- The scanner didn't block GPL-licensed
    dependencies when running in "compliance mode." The Implementer hadn't considered
    license policy enforcement as a feature.
 
-2. **`test_csv_report_includes_risk`** — The CSV export was missing a "risk" column
+2. **`test_csv_report_includes_risk`** -- The CSV export was missing a "risk" column
    that the specification required. The Implementer tested the CSV had the right
    license data but missed this metadata field.
 

@@ -27,7 +27,7 @@ SEALED_FAILED=$2
 THRESHOLD=${3:-}
 
 if [ "$SEALED_TOTAL" -eq 0 ]; then
-    echo "Gap Score: 0% ✅ (perfect — no sealed tests)"
+    echo "Gap Score: 0% ✅ (perfect -- no sealed tests)"
     exit 0
 fi
 
