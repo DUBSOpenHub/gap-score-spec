@@ -32,14 +32,14 @@ Generate acceptance tests from the spec **before code exists**. Hide them from t
 
 ## Why "Shadow Score"?
 
+*Shadow Score measures what your AI missed when it couldn't see the tests.*
+
 We originally called this metric "Gap Score." It was accurate but clinical — nobody remembered it, nobody asked about it.
 
 **Shadow Score** sticks because it maps to something developers already know: *shadow testing* — running hidden checks alongside production to catch what the main path misses. That's exactly what sealed-envelope testing does. The AI builds code. Shadow tests — written before the code existed and hidden from the builder — judge it. Whatever fails is what the AI couldn't see.
 
 **0% = no shadows.** The implementation covered everything the spec required.  
 **60% = flying blind.** The AI missed more than half the acceptance criteria it never knew about.
-
-The name is the explanation. One sentence: *"Shadow Score measures what your AI missed when it couldn't see the tests."*
 
 ## Quick Start: Add Shadow Score in 5 Minutes
 
