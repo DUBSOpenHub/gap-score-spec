@@ -1,4 +1,4 @@
-# Gap Score Specification
+# Shadow Score Specification
 
 **Version:** 1.0.0  
 **Status:** Draft  
@@ -10,9 +10,9 @@
 
 ## 1. Abstract
 
-**Gap Score** is a framework-agnostic metric for measuring the quality of AI-generated code. It quantifies the difference between what an AI implementation agent *tested for itself* and what an independent, specification-derived test suite *actually requires*. A Gap Score of 0% means the implementation's own tests fully anticipated the acceptance criteria. A high Gap Score reveals blind spots — requirements the AI "thought" it covered but didn't.
+**Shadow Score** is a framework-agnostic metric for measuring the quality of AI-generated code. It quantifies the difference between what an AI implementation agent *tested for itself* and what an independent, specification-derived test suite *actually requires*. A Shadow Score of 0% means the implementation's own tests fully anticipated the acceptance criteria. A high Shadow Score reveals blind spots — requirements the AI "thought" it covered but didn't.
 
-Gap Score is computed using the **Sealed-Envelope Protocol**, a testing methodology where acceptance tests are generated from the specification *before code is written* and hidden from the implementation agent throughout the build process.
+Shadow Score is computed using the **Sealed-Envelope Protocol**, a testing methodology where acceptance tests are generated from the specification *before code is written* and hidden from the implementation agent throughout the build process.
 
 ---
 
@@ -37,9 +37,9 @@ Existing metrics fall short:
 | Human code review | Subjective, expensive, doesn't scale |
 | LLM-as-judge | Another AI evaluating AI — same blindness risk |
 
-### Gap Score Solves This
+### Shadow Score Solves This
 
-Gap Score introduces an **independent, adversarial quality signal** by separating test authorship from code authorship and measuring the delta. It answers a specific question: *"What percentage of specification requirements did the implementation fail to satisfy, as measured by tests the implementer never saw?"*
+Shadow Score introduces an **independent, adversarial quality signal** by separating test authorship from code authorship and measuring the delta. It answers a specific question: *"What percentage of specification requirements did the implementation fail to satisfy, as measured by tests the implementer never saw?"*
 
 ---
 
@@ -52,7 +52,7 @@ Gap Score introduces an **independent, adversarial quality signal** by separatin
 | **Specifier** | Produces the specification (requirements, acceptance criteria) | Full project context |
 | **Seal Author** | Generates specification tests (sealed tests) from the spec | Specification ONLY — never code, never architecture |
 | **Implementer** | Writes code and implementation tests (open tests) | Specification + architecture — NEVER sealed tests |
-| **Validator** | Runs all tests and computes Gap Score | Full access: code + sealed tests + open tests |
+| **Validator** | Runs all tests and computes Shadow Score | Full access: code + sealed tests + open tests |
 
 In an AI agent pipeline, each role is typically a separate agent invocation with isolated context. In a human workflow, roles may be assigned to different team members.
 
@@ -62,10 +62,10 @@ In an AI agent pipeline, each role is typically a separate agent invocation with
 
 - **Open Tests** (`O`): Tests written by the Implementer alongside the code. These validate the Implementer's own understanding of the requirements.
 
-### 3.3 Gap Score Formula
+### 3.3 Shadow Score Formula
 
 ```
-Gap Score = (Sf / St) × 100
+Shadow Score = (Sf / St) × 100
 ```
 
 Where:
@@ -85,17 +85,17 @@ Where:
 
 ### 3.5 Supplementary Metrics
 
-These optional metrics provide additional context alongside the primary Gap Score:
+These optional metrics provide additional context alongside the primary Shadow Score:
 
 - **Coverage Delta**: `|sealed_categories_tested - open_categories_tested|` — measures how many *types* of scenarios (happy path, edge case, error handling, security) differ between suites.
 - **Overlap Ratio**: `matching_scenarios / St` — measures how many sealed test scenarios the Implementer independently anticipated.
-- **Hardening Velocity**: `gap_reduction_per_cycle` — measures how quickly the Gap Score decreases during iterative fixing.
+- **Hardening Velocity**: `gap_reduction_per_cycle` — measures how quickly the Shadow Score decreases during iterative fixing.
 
 ---
 
 ## 4. Sealed-Envelope Protocol
 
-The Sealed-Envelope Protocol is the testing methodology that produces a valid Gap Score. Implementations MUST follow this protocol to claim Gap Score conformance.
+The Sealed-Envelope Protocol is the testing methodology that produces a valid Shadow Score. Implementations MUST follow this protocol to claim Shadow Score conformance.
 
 ### 4.1 Seal Generation
 
@@ -115,7 +115,7 @@ Requirements:
 
 ### 4.2 Information Isolation
 
-This is the **critical invariant** of the protocol. Breaking isolation invalidates the Gap Score.
+This is the **critical invariant** of the protocol. Breaking isolation invalidates the Shadow Score.
 
 | Phase | Seal Author Sees | Implementer Sees | Validator Sees |
 |-------|-----------------|------------------|---------------|
@@ -142,20 +142,20 @@ Procedure:
 4. Run open tests using the appropriate test runner
 5. Record: total sealed tests, passed, failed (with failure messages)
 6. Record: total open tests, passed, failed
-7. Compute Gap Score: `(sealed_failures / sealed_total) × 100`
+7. Compute Shadow Score: `(sealed_failures / sealed_total) × 100`
 8. Categorize failures by type (happy path, edge case, error handling, security)
 9. Produce Gap Report
 
 ### 4.4 Hardening
 
-When Gap Score > 0%, the Implementer may fix the code iteratively. The hardening loop preserves information isolation:
+When Shadow Score > 0%, the Implementer may fix the code iteratively. The hardening loop preserves information isolation:
 
 1. Extract from the Gap Report: test name, expected result, actual result, failure message
 2. **Do NOT** share the sealed test source code with the Implementer
 3. The Implementer fixes the implementation based on failure descriptions only
 4. Re-run validation (§4.3)
 5. Repeat up to a configured maximum number of cycles
-6. If Gap Score remains > 0% after max cycles, escalate to human review
+6. If Shadow Score remains > 0% after max cycles, escalate to human review
 
 **Rationale:** Sharing only failure messages (not test code) forces the Implementer to fix the *root cause* rather than pattern-match against specific test assertions.
 
@@ -166,7 +166,7 @@ To ensure sealed tests are not modified after generation:
 1. After seal generation, compute: `hash = SHA-256(sorted_file_contents_of_sealed_directory)`
 2. Store the hash in a tamper-evident log (e.g., state file, database, version control)
 3. Before validation, recompute the hash and compare
-4. If hashes differ, the Gap Score is **invalid** — sealed tests were tampered with
+4. If hashes differ, the Shadow Score is **invalid** — sealed tests were tampered with
 
 **Recommended implementation:**
 ```bash
@@ -185,12 +185,12 @@ Implementations SHOULD produce a Gap Report in at least one of these formats:
 
 ```json
 {
-  "gap_score_spec_version": "1.0.0",
+  "shadow_score_spec_version": "1.0.0",
   "report": {
     "id": "run-20260224-1200",
     "timestamp": "2026-02-24T12:00:00Z",
     "specification": "PRD.md",
-    "gap_score": 11.1,
+    "shadow_score": 11.1,
     "level": "minor",
     "sealed_hash": "sha256:a1b2c3d4..."
   },
@@ -229,8 +229,8 @@ Implementations SHOULD produce a Gap Report in at least one of these formats:
   "hardening": {
     "cycles_completed": 1,
     "max_cycles": 3,
-    "initial_gap_score": 22.2,
-    "final_gap_score": 11.1
+    "initial_shadow_score": 22.2,
+    "final_shadow_score": 11.1
   }
 }
 ```
@@ -243,8 +243,8 @@ See `examples/` for complete rendered examples.
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `gap_score_spec_version` | string | ✅ | Spec version this report conforms to |
-| `gap_score` | number | ✅ | The computed Gap Score (0–100) |
+| `shadow_score_spec_version` | string | ✅ | Spec version this report conforms to |
+| `shadow_score` | number | ✅ | The computed Shadow Score (0–100) |
 | `level` | string | ✅ | One of: `perfect`, `minor`, `moderate`, `significant`, `critical` |
 | `sealed_tests.total` | integer | ✅ | Total sealed tests run |
 | `sealed_tests.passed` | integer | ✅ | Sealed tests that passed |
@@ -272,15 +272,15 @@ Implementations SHOULD categorize each sealed test into one of:
 
 Implementations may claim conformance at three levels:
 
-### Level 1 — Gap Score Computation
+### Level 1 — Shadow Score Computation
 **Requirements:**
-- Computes Gap Score using the formula in §3.3
+- Computes Shadow Score using the formula in §3.3
 - Produces a Gap Report with all required fields (§5.2)
 - Uses the interpretation scale in §3.4
 
 **Does NOT require:** Sealed-envelope isolation (tests may be authored with knowledge of the implementation).
 
-**Use case:** Retrofitting Gap Score onto existing test suites for comparative analysis.
+**Use case:** Retrofitting Shadow Score onto existing test suites for comparative analysis.
 
 ### Level 2 — Sealed-Envelope Isolation
 **Requirements:**
@@ -297,7 +297,7 @@ Implementations may claim conformance at three levels:
 - Hardening loop (§4.4) is implemented
 - Failure messages shared with Implementer do NOT include test source code
 - Hardening velocity is tracked
-- Gap Score is recomputed after each hardening cycle
+- Shadow Score is recomputed after each hardening cycle
 
 **Use case:** Production-grade autonomous build systems.
 
@@ -305,7 +305,7 @@ Implementations may claim conformance at three levels:
 
 ## 7. Reference Implementation
 
-The reference implementation of the Gap Score Specification is **[Dark Factory](https://github.com/DUBSOpenHub/dark-factory)**, an autonomous agentic build system for the GitHub Copilot CLI.
+The reference implementation of the Shadow Score Specification is **[Dark Factory](https://github.com/DUBSOpenHub/dark-factory)**, an autonomous agentic build system for the GitHub Copilot CLI.
 
 Dark Factory implements **Level 3** conformance:
 - Sealed tests generated by QA Sealed agent from PRD only (§4.1)
@@ -314,7 +314,7 @@ Dark Factory implements **Level 3** conformance:
 - Hardening loop with failure-message-only feedback (§4.4)
 - SHA-256 hash computed and stored in state.json (§4.5)
 
-Lightweight reference validators for computing Gap Score from test output are available in the [`validators/`](./validators/) directory.
+Lightweight reference validators for computing Shadow Score from test output are available in the [`validators/`](./validators/) directory.
 
 ---
 
@@ -329,7 +329,7 @@ Lightweight reference validators for computing Gap Score from test output are av
 | Sealed | 5 | 5 | 0 |
 | Open | 8 | 8 | 0 |
 
-**Gap Score:** `0 / 5 × 100 = 0%` ✅ Perfect
+**Shadow Score:** `0 / 5 × 100 = 0%` ✅ Perfect
 
 The Implementer's tests covered all scenarios the sealed tests checked, plus 3 additional cases. This indicates thorough understanding of the specification.
 
@@ -342,7 +342,7 @@ The Implementer's tests covered all scenarios the sealed tests checked, plus 3 a
 | Sealed | 18 | 16 | 2 |
 | Open | 12 | 12 | 0 |
 
-**Gap Score:** `2 / 18 × 100 = 11.1%` 🟢 Minor
+**Shadow Score:** `2 / 18 × 100 = 11.1%` 🟢 Minor
 
 **Failures:**
 1. `test_rejects_gpl_dependency` — GPL dependency not blocked (security gap)
@@ -359,7 +359,7 @@ The Implementer built solid core functionality but missed a security edge case a
 | Sealed | 15 | 6 | 9 |
 | Open | 4 | 4 | 0 |
 
-**Gap Score:** `9 / 15 × 100 = 60%` 🔴 Critical
+**Shadow Score:** `9 / 15 × 100 = 60%` 🔴 Critical
 
 The Implementer wrote only 4 tests — all happy path. Sealed tests caught: missing email validation, no password hashing, duplicate user returns 500 instead of 409, SQL injection vulnerability, missing rate limiting, and more. This indicates the Implementer built to the "golden path" without considering real-world edge cases.
 
@@ -369,25 +369,25 @@ The Implementer wrote only 4 tests — all happy path. Sealed tests caught: miss
 
 ## Appendix B: FAQ
 
-**Q: Can I use Gap Score without AI agents?**  
-A: Yes. Gap Score works with any workflow where one party writes specification-based tests and another party implements the code. Human teams can use it for code review, pair programming assessment, or contractor evaluation.
+**Q: Can I use Shadow Score without AI agents?**  
+A: Yes. Shadow Score works with any workflow where one party writes specification-based tests and another party implements the code. Human teams can use it for code review, pair programming assessment, or contractor evaluation.
 
 **Q: What if the sealed tests themselves are wrong?**  
-A: Sealed tests should be reviewed by a human (or a separate validator) before being finalized. Buggy sealed tests inflate the Gap Score incorrectly. The tamper evidence hash (§4.5) ensures they aren't changed after the fact — but it doesn't guarantee correctness.
+A: Sealed tests should be reviewed by a human (or a separate validator) before being finalized. Buggy sealed tests inflate the Shadow Score incorrectly. The tamper evidence hash (§4.5) ensures they aren't changed after the fact — but it doesn't guarantee correctness.
 
-**Q: Does a 0% Gap Score mean the code is perfect?**  
-A: No. It means the code passes all sealed tests. The sealed tests may not cover every possible scenario. Gap Score measures *specification compliance*, not *absolute correctness*.
+**Q: Does a 0% Shadow Score mean the code is perfect?**  
+A: No. It means the code passes all sealed tests. The sealed tests may not cover every possible scenario. Shadow Score measures *specification compliance*, not *absolute correctness*.
 
 **Q: How many sealed tests should I write?**  
 A: Enough to cover every acceptance criterion in the specification, including happy path, edge cases, error handling, and security. As a guideline: 3–5 sealed tests per acceptance criterion.
 
 **Q: Can the Implementer game the system?**  
-A: If information isolation (§4.2) is properly enforced, no. The Implementer cannot see the sealed tests and therefore cannot write code that specifically targets them. If isolation is broken, the Gap Score is invalid.
+A: If information isolation (§4.2) is properly enforced, no. The Implementer cannot see the sealed tests and therefore cannot write code that specifically targets them. If isolation is broken, the Shadow Score is invalid.
 
-**Q: How does Gap Score compare to code coverage?**  
-A: Code coverage measures *lines of code executed by tests*. Gap Score measures *specification requirements satisfied by the implementation*. You can have 100% code coverage and a 50% Gap Score (the code runs but produces wrong results for half the requirements).
+**Q: How does Shadow Score compare to code coverage?**  
+A: Code coverage measures *lines of code executed by tests*. Shadow Score measures *specification requirements satisfied by the implementation*. You can have 100% code coverage and a 50% Shadow Score (the code runs but produces wrong results for half the requirements).
 
-**Q: Is Gap Score useful for non-AI development?**  
+**Q: Is Shadow Score useful for non-AI development?**  
 A: Yes. Any team practicing independent verification and validation (IV&V) can benefit. The concept originates from quality engineering practices used in aerospace, medical devices, and safety-critical systems.
 
 ---
@@ -396,7 +396,7 @@ A: Yes. Any team practicing independent verification and validation (IV&V) can b
 
 ### 1.0.0 (2026-02-24)
 - Initial specification release
-- Gap Score formula and interpretation scale
+- Shadow Score formula and interpretation scale
 - Sealed-Envelope Protocol (4 phases)
 - Reporting format (JSON + Markdown)
 - Three conformance levels
