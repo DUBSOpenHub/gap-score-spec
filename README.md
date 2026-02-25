@@ -63,7 +63,7 @@ cd validators && go build -o shadow-score-go . && cd ..
 2. **Build the code** — the implementer never sees the sealed tests
 3. **Run both suites** — sealed tests and the implementer's own tests
 4. **Compute**: `failed_sealed / total_sealed × 100`
-5. **Report**: Use the [JSON schema](validators/gap-report-schema.json) or markdown format
+5. **Report**: Use the [JSON schema](validators/shadow-report-schema.json) or markdown format
 
 That's it. Framework, language, and tooling don't matter — Shadow Score works anywhere.
 
