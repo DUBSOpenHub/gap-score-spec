@@ -1,18 +1,18 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Gap Score Report",
-  "description": "Schema for Gap Score reports conforming to Gap Score Spec v1.0.0",
+  "title": "Shadow Score Report",
+  "description": "Schema for Shadow Score reports conforming to Shadow Score Spec v1.0.0",
   "type": "object",
-  "required": ["gap_score_spec_version", "report", "sealed_tests", "failures"],
+  "required": ["shadow_score_spec_version", "report", "sealed_tests", "failures"],
   "properties": {
-    "gap_score_spec_version": {
+    "shadow_score_spec_version": {
       "type": "string",
-      "description": "Version of the Gap Score Spec this report conforms to",
+      "description": "Version of the Shadow Score Spec this report conforms to",
       "pattern": "^\\d+\\.\\d+\\.\\d+$"
     },
     "report": {
       "type": "object",
-      "required": ["gap_score", "level"],
+      "required": ["shadow_score", "level"],
       "properties": {
         "id": {
           "type": "string",
@@ -27,16 +27,16 @@
           "type": "string",
           "description": "Path or identifier of the specification document"
         },
-        "gap_score": {
+        "shadow_score": {
           "type": "number",
           "minimum": 0,
           "maximum": 100,
-          "description": "Computed Gap Score as a percentage"
+          "description": "Computed Shadow Score as a percentage"
         },
         "level": {
           "type": "string",
           "enum": ["perfect", "minor", "moderate", "significant", "critical"],
-          "description": "Gap Score classification level"
+          "description": "Shadow Score classification level"
         },
         "sealed_hash": {
           "type": "string",
@@ -106,8 +106,8 @@
       "properties": {
         "cycles_completed": { "type": "integer", "minimum": 0 },
         "max_cycles": { "type": "integer", "minimum": 1 },
-        "initial_gap_score": { "type": "number", "minimum": 0, "maximum": 100 },
-        "final_gap_score": { "type": "number", "minimum": 0, "maximum": 100 }
+        "initial_shadow_score": { "type": "number", "minimum": 0, "maximum": 100 },
+        "final_shadow_score": { "type": "number", "minimum": 0, "maximum": 100 }
       }
     }
   },

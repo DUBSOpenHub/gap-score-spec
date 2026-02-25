@@ -1,7 +1,7 @@
 # Example 01 — Perfect Score (0%)
 
 **Scenario:** Fibonacci calculator CLI  
-**Gap Score:** 0% ✅ Perfect
+**Shadow Score:** 0% ✅ Perfect
 
 ## What Happened
 
@@ -12,7 +12,7 @@ every scenario the sealed tests checked, plus 3 additional cases.
 ## Run the Validator
 
 ```bash
-python ../../validators/gap-score.py \
+python ../../validators/shadow-score.py \
   --sealed sealed-results.json \
   --open open-results.json \
   --format summary
@@ -20,7 +20,7 @@ python ../../validators/gap-score.py \
 
 **Expected output:**
 ```
-Gap Score: 0.0% ✅ (perfect)
+Shadow Score: 0.0% ✅ (perfect)
 Sealed: 5/5 passed
 Open:   8/8 passed
 ```

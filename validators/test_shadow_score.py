@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """
-Tests for gap-score.py reference validator.
+Tests for shadow-score.py reference validator.
 
 Run with:
-    cd validators && python -m unittest test_gap_score -v
-    cd validators && python -m pytest test_gap_score.py -v
+    cd validators && python -m unittest test_shadow_score -v
+    cd validators && python -m pytest test_shadow_score.py -v
 """
 import importlib.util
 import json
@@ -17,19 +17,19 @@ from pathlib import Path
 
 VALIDATORS_DIR = Path(__file__).resolve().parent
 EXAMPLES_DIR = VALIDATORS_DIR.parent / "examples"
-SCRIPT = VALIDATORS_DIR / "gap-score.py"
+SCRIPT = VALIDATORS_DIR / "shadow-score.py"
 
 
 def _load_module():
-    """Import gap-score.py (hyphenated name) via importlib."""
-    spec = importlib.util.spec_from_file_location("gap_score", str(SCRIPT))
+    """Import shadow-score.py (hyphenated name) via importlib."""
+    spec = importlib.util.spec_from_file_location("shadow_score", str(SCRIPT))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     return mod
 
 
 def run_cli(*args):
-    """Run gap-score.py with the given CLI arguments."""
+    """Run shadow-score.py with the given CLI arguments."""
     cmd = [sys.executable, str(SCRIPT)] + list(args)
     return subprocess.run(cmd, capture_output=True, text=True)
 
@@ -92,16 +92,16 @@ class TestClassifyGap(unittest.TestCase):
 
 
 # ---------------------------------------------------------------------------
-# Unit tests: compute_gap_score
+# Unit tests: compute_shadow_score
 # ---------------------------------------------------------------------------
 
-class TestComputeGapScore(unittest.TestCase):
+class TestComputeShadowScore(unittest.TestCase):
     def setUp(self):
         self.mod = _load_module()
 
     def test_zero_sealed_tests(self):
-        result = self.mod.compute_gap_score([])
-        self.assertEqual(result["gap_score"], 0.0)
+        result = self.mod.compute_shadow_score([])
+        self.assertEqual(result["shadow_score"], 0.0)
         self.assertEqual(result["level"], "perfect")
         self.assertEqual(result["total"], 0)
         self.assertEqual(result["passed"], 0)
@@ -110,16 +110,16 @@ class TestComputeGapScore(unittest.TestCase):
 
     def test_all_pass(self):
         tests = [{"name": f"t{i}", "status": "passed", "category": "happy_path"} for i in range(10)]
-        result = self.mod.compute_gap_score(tests)
-        self.assertEqual(result["gap_score"], 0.0)
+        result = self.mod.compute_shadow_score(tests)
+        self.assertEqual(result["shadow_score"], 0.0)
         self.assertEqual(result["level"], "perfect")
         self.assertEqual(result["passed"], 10)
         self.assertEqual(result["failed"], 0)
 
     def test_all_fail(self):
         tests = [{"name": f"t{i}", "status": "failed", "category": "error_handling"} for i in range(5)]
-        result = self.mod.compute_gap_score(tests)
-        self.assertEqual(result["gap_score"], 100.0)
+        result = self.mod.compute_shadow_score(tests)
+        self.assertEqual(result["shadow_score"], 100.0)
         self.assertEqual(result["level"], "critical")
         self.assertEqual(result["failed"], 5)
         self.assertEqual(result["passed"], 0)
@@ -129,23 +129,23 @@ class TestComputeGapScore(unittest.TestCase):
         # 2/10 = 20% → moderate
         tests = [{"name": f"p{i}", "status": "passed"} for i in range(8)]
         tests += [{"name": f"f{i}", "status": "failed"} for i in range(2)]
-        result = self.mod.compute_gap_score(tests)
-        self.assertEqual(result["gap_score"], 20.0)
+        result = self.mod.compute_shadow_score(tests)
+        self.assertEqual(result["shadow_score"], 20.0)
         self.assertEqual(result["level"], "moderate")
 
     def test_score_rounded_to_one_decimal(self):
         # 1/3 = 33.333... → 33.3
         tests = [{"name": f"p{i}", "status": "passed"} for i in range(2)]
         tests += [{"name": "f0", "status": "failed"}]
-        result = self.mod.compute_gap_score(tests)
-        self.assertEqual(result["gap_score"], 33.3)
+        result = self.mod.compute_shadow_score(tests)
+        self.assertEqual(result["shadow_score"], 33.3)
 
     def test_failures_list_contains_only_failed(self):
         tests = [
             {"name": "pass1", "status": "passed"},
             {"name": "fail1", "status": "failed", "message": "oops"},
         ]
-        result = self.mod.compute_gap_score(tests)
+        result = self.mod.compute_shadow_score(tests)
         self.assertEqual(len(result["failures"]), 1)
         self.assertEqual(result["failures"][0]["name"], "fail1")
 
@@ -166,7 +166,7 @@ class TestWorkedExamples(unittest.TestCase):
         result = run_cli("--sealed", sealed, "--open", open_f)
         self.assertEqual(result.returncode, 0, result.stderr)
         report = json.loads(result.stdout)
-        self.assertEqual(report["report"]["gap_score"], 0.0)
+        self.assertEqual(report["report"]["shadow_score"], 0.0)
         self.assertEqual(report["report"]["level"], "perfect")
         self.assertEqual(report["sealed_tests"]["failed"], 0)
 
@@ -176,7 +176,7 @@ class TestWorkedExamples(unittest.TestCase):
         result = run_cli("--sealed", sealed)
         self.assertEqual(result.returncode, 0, result.stderr)
         report = json.loads(result.stdout)
-        self.assertEqual(report["report"]["gap_score"], 11.1)
+        self.assertEqual(report["report"]["shadow_score"], 11.1)
         self.assertEqual(report["report"]["level"], "minor")
 
     @unittest.skipUnless(_examples_exist("03-critical-gaps"), "example files not found")
@@ -185,7 +185,7 @@ class TestWorkedExamples(unittest.TestCase):
         result = run_cli("--sealed", sealed)
         self.assertEqual(result.returncode, 0, result.stderr)
         report = json.loads(result.stdout)
-        self.assertEqual(report["report"]["gap_score"], 60.0)
+        self.assertEqual(report["report"]["shadow_score"], 60.0)
         self.assertEqual(report["report"]["level"], "critical")
 
     @unittest.skipUnless(_examples_exist("01-perfect-score"), "example files not found")
@@ -210,7 +210,7 @@ class TestThreshold(unittest.TestCase):
         return f.name
 
     def test_under_threshold_exits_zero(self):
-        # 10% gap score, threshold 15 → should pass
+        # 10% shadow score, threshold 15 → should pass
         fname = self._write_temp(make_sealed_json(10, 1))
         try:
             result = run_cli("--sealed", fname, "--threshold", "15")
@@ -219,7 +219,7 @@ class TestThreshold(unittest.TestCase):
             os.unlink(fname)
 
     def test_over_threshold_exits_one(self):
-        # 50% gap score, threshold 15 → should fail
+        # 50% shadow score, threshold 15 → should fail
         fname = self._write_temp(make_sealed_json(10, 5))
         try:
             result = run_cli("--sealed", fname, "--threshold", "15")
@@ -228,7 +228,7 @@ class TestThreshold(unittest.TestCase):
             os.unlink(fname)
 
     def test_exactly_at_threshold_exits_zero(self):
-        # Exactly 10% gap score, threshold 10 → 10 > 10 is False → exit 0
+        # Exactly 10% shadow score, threshold 10 → 10 > 10 is False → exit 0
         fname = self._write_temp(make_sealed_json(10, 1))
         try:
             result = run_cli("--sealed", fname, "--threshold", "10")
@@ -237,7 +237,7 @@ class TestThreshold(unittest.TestCase):
             os.unlink(fname)
 
     def test_no_threshold_always_exits_zero(self):
-        # 100% gap score with no threshold → still exit 0
+        # 100% shadow score with no threshold → still exit 0
         fname = self._write_temp(make_sealed_json(10, 10))
         try:
             result = run_cli("--sealed", fname)
@@ -296,14 +296,14 @@ class TestOutputFormats(unittest.TestCase):
         fname = self._write_temp(make_sealed_json(4, 1))
         result = run_cli("--sealed", fname, "--format", "json")
         report = json.loads(result.stdout)
-        for key in ("gap_score_spec_version", "report", "sealed_tests", "failures"):
+        for key in ("shadow_score_spec_version", "report", "sealed_tests", "failures"):
             self.assertIn(key, report, f"missing key: {key}")
 
     def test_json_spec_version_matches(self):
         fname = self._write_temp(make_sealed_json(4, 0))
         result = run_cli("--sealed", fname)
         report = json.loads(result.stdout)
-        self.assertEqual(report["gap_score_spec_version"], "1.0.0")
+        self.assertEqual(report["shadow_score_spec_version"], "1.0.0")
 
     def test_json_failures_is_list(self):
         fname = self._write_temp(make_sealed_json(4, 2))
@@ -318,11 +318,11 @@ class TestOutputFormats(unittest.TestCase):
         report = json.loads(result.stdout)
         self.assertEqual(report["failures"], [])
 
-    def test_summary_output_contains_gap_score_line(self):
+    def test_summary_output_contains_shadow_score_line(self):
         fname = self._write_temp(make_sealed_json(4, 1))
         result = run_cli("--sealed", fname, "--format", "summary")
         self.assertEqual(result.returncode, 0)
-        self.assertIn("Gap Score:", result.stdout)
+        self.assertIn("Shadow Score:", result.stdout)
 
     def test_summary_output_contains_sealed_line(self):
         fname = self._write_temp(make_sealed_json(4, 1))

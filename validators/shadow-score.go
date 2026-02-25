@@ -1,12 +1,12 @@
-// Gap Score Reference Validator (Go)
-// Computes Gap Score from test result files (JSON format).
-// Conforms to Gap Score Spec v1.0.0.
+// Shadow Score Reference Validator (Go)
+// Computes Shadow Score from test result files (JSON format).
+// Conforms to Shadow Score Spec v1.0.0.
 //
 // Usage:
 //
-//	go run gap-score.go --sealed sealed-results.json --open open-results.json
-//	go run gap-score.go --sealed sealed-results.json --threshold 15
-//	go run gap-score.go --sealed sealed-results.json --format summary
+//	go run shadow-score.go --sealed sealed-results.json --open open-results.json
+//	go run shadow-score.go --sealed sealed-results.json --threshold 15
+//	go run shadow-score.go --sealed sealed-results.json --format summary
 package main
 
 import (
@@ -60,7 +60,7 @@ type Failure struct {
 }
 
 type reportSummary struct {
-	GapScore float64 `json:"gap_score"`
+	ShadowScore float64 `json:"shadow_score"`
 	Level    string  `json:"level"`
 }
 
@@ -79,7 +79,7 @@ type CategoryComparison struct {
 
 // Report is the top-level JSON output structure.
 type Report struct {
-	SpecVersion        string                        `json:"gap_score_spec_version"`
+	SpecVersion        string                        `json:"shadow_score_spec_version"`
 	Report             reportSummary                 `json:"report"`
 	SealedTests        testStats                     `json:"sealed_tests"`
 	OpenTests          *testStats                    `json:"open_tests,omitempty"`
@@ -151,7 +151,7 @@ func buildReport(sealed []TestResult, open []TestResult, hasOpen bool) Report {
 	report := Report{
 		SpecVersion: specVersion,
 		Report: reportSummary{
-			GapScore: score,
+			ShadowScore: score,
 			Level:    level,
 		},
 		SealedTests: testStats{
@@ -208,7 +208,7 @@ func main() {
 
 	var thresholdVal float64
 	var hasThreshold bool
-	flag.Func("threshold", "Exit with code 1 if Gap Score exceeds this threshold", func(s string) error {
+	flag.Func("threshold", "Exit with code 1 if Shadow Score exceeds this threshold", func(s string) error {
 		v, err := strconv.ParseFloat(s, 64)
 		if err != nil {
 			return fmt.Errorf("threshold must be a number: %w", err)
@@ -245,10 +245,10 @@ func main() {
 	report := buildReport(sealed, open, hasOpen)
 
 	if *format == "summary" {
-		score := report.Report.GapScore
+		score := report.Report.ShadowScore
 		level := report.Report.Level
 		_, indicator := classifyGap(score)
-		fmt.Printf("Gap Score: %.1f%% %s (%s)\n", score, indicator, level)
+		fmt.Printf("Shadow Score: %.1f%% %s (%s)\n", score, indicator, level)
 		fmt.Printf("Sealed: %d/%d passed\n", report.SealedTests.Passed, report.SealedTests.Total)
 		if report.OpenTests != nil {
 			fmt.Printf("Open:   %d/%d passed\n", report.OpenTests.Passed, report.OpenTests.Total)
@@ -268,7 +268,7 @@ func main() {
 		fmt.Println(string(out))
 	}
 
-	if hasThreshold && report.Report.GapScore > thresholdVal {
+	if hasThreshold && report.Report.ShadowScore > thresholdVal {
 		os.Exit(1)
 	}
 }

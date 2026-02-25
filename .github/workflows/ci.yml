@@ -17,10 +17,10 @@ jobs:
           python-version: "3.11"
 
       - name: Run Python validator tests
-        run: cd validators && python -m unittest test_gap_score -v
+        run: cd validators && python -m unittest test_shadow_score -v
 
       - name: Validate JSON schema syntax
-        run: python -c "import json; json.load(open('validators/gap-report-schema.json'))"
+        run: python -c "import json; json.load(open('validators/shadow-report-schema.json'))"
 
       - name: Validate example JSON files
         run: |
@@ -43,19 +43,19 @@ jobs:
           go-version: "1.21"
 
       - name: Build Go validator
-        run: cd validators && go build -o /tmp/gap-score-go .
+        run: cd validators && go build -o /tmp/shadow-score-go .
 
       - name: Smoke-test Go validator (perfect score)
         run: |
-          /tmp/gap-score-go --sealed examples/01-perfect-score/sealed-results.json \
+          /tmp/shadow-score-go --sealed examples/01-perfect-score/sealed-results.json \
             --open examples/01-perfect-score/open-results.json --format summary
 
       - name: Smoke-test Go validator (threshold pass)
         run: |
-          /tmp/gap-score-go --sealed examples/02-minor-gaps/sealed-results.json \
+          /tmp/shadow-score-go --sealed examples/02-minor-gaps/sealed-results.json \
             --threshold 15
 
       - name: Smoke-test Go validator (threshold fail exits 1)
         run: |
-          /tmp/gap-score-go --sealed examples/03-critical-gaps/sealed-results.json \
+          /tmp/shadow-score-go --sealed examples/03-critical-gaps/sealed-results.json \
             --threshold 15 && exit 1 || exit 0

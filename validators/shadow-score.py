@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Gap Score Reference Validator
+Shadow Score Reference Validator
 
-Computes Gap Score from test result files (JSON format).
-Conforms to Gap Score Spec v1.0.0.
+Computes Shadow Score from test result files (JSON format).
+Conforms to Shadow Score Spec v1.0.0.
 
 Usage:
-    python gap-score.py --sealed sealed-results.json --open open-results.json
-    python gap-score.py --sealed sealed-results.json
-    python gap-score.py --sealed sealed-results.json --threshold 15
+    python shadow-score.py --sealed sealed-results.json --open open-results.json
+    python shadow-score.py --sealed sealed-results.json
+    python shadow-score.py --sealed sealed-results.json --threshold 15
 
 Input format (sealed-results.json):
 {
@@ -50,10 +50,10 @@ def load_results(path: str) -> list[dict]:
     return data.get("tests", [])
 
 
-def compute_gap_score(sealed: list[dict]) -> dict:
+def compute_shadow_score(sealed: list[dict]) -> dict:
     total = len(sealed)
     if total == 0:
-        return {"gap_score": 0.0, "level": "perfect", "indicator": "✅",
+        return {"shadow_score": 0.0, "level": "perfect", "indicator": "✅",
                 "total": 0, "passed": 0, "failed": 0, "failures": []}
 
     failures = [t for t in sealed if t.get("status") == "failed"]
@@ -62,7 +62,7 @@ def compute_gap_score(sealed: list[dict]) -> dict:
     level, indicator = classify_gap(score)
 
     return {
-        "gap_score": round(score, 1),
+        "shadow_score": round(score, 1),
         "level": level,
         "indicator": indicator,
         "total": total,
@@ -82,12 +82,12 @@ def build_coverage_comparison(sealed: list[dict], open_tests: list[dict]) -> dic
 
 
 def build_report(sealed: list[dict], open_tests: list[dict] | None = None) -> dict:
-    result = compute_gap_score(sealed)
+    result = compute_shadow_score(sealed)
 
     report = {
-        "gap_score_spec_version": SPEC_VERSION,
+        "shadow_score_spec_version": SPEC_VERSION,
         "report": {
-            "gap_score": result["gap_score"],
+            "shadow_score": result["shadow_score"],
             "level": result["level"],
         },
         "sealed_tests": {
@@ -122,12 +122,12 @@ def build_report(sealed: list[dict], open_tests: list[dict] | None = None) -> di
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Gap Score Reference Validator (Spec v1.0.0)"
+        description="Shadow Score Reference Validator (Spec v1.0.0)"
     )
     parser.add_argument("--sealed", required=True, help="Path to sealed test results JSON")
     parser.add_argument("--open", help="Path to open test results JSON (optional)")
     parser.add_argument("--threshold", type=float, default=None,
-                        help="Exit with code 1 if Gap Score exceeds this threshold")
+                        help="Exit with code 1 if Shadow Score exceeds this threshold")
     parser.add_argument("--format", choices=["json", "summary"], default="json",
                         help="Output format (default: json)")
     args = parser.parse_args()
@@ -139,10 +139,10 @@ def main():
 
     if args.format == "summary":
         r = report
-        score = r["report"]["gap_score"]
+        score = r["report"]["shadow_score"]
         level = r["report"]["level"]
         _, indicator = classify_gap(score)
-        print(f"Gap Score: {score}% {indicator} ({level})")
+        print(f"Shadow Score: {score}% {indicator} ({level})")
         print(f"Sealed: {r['sealed_tests']['passed']}/{r['sealed_tests']['total']} passed")
         if "open_tests" in r:
             print(f"Open:   {r['open_tests']['passed']}/{r['open_tests']['total']} passed")
@@ -153,7 +153,7 @@ def main():
     else:
         print(json.dumps(report, indent=2))
 
-    if args.threshold is not None and report["report"]["gap_score"] > args.threshold:
+    if args.threshold is not None and report["report"]["shadow_score"] > args.threshold:
         sys.exit(1)
 
 
