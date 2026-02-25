@@ -1,7 +1,7 @@
 # Example 03 — Critical Gaps (60%)
 
 **Scenario:** User registration REST API  
-**Gap Score:** 60% 🔴 Critical
+**Shadow Score:** 60% 🔴 Critical
 
 ## What Happened
 
@@ -30,7 +30,7 @@ handling requirements in the specification.
 ## Run the Validator
 
 ```bash
-python ../../validators/gap-score.py \
+python ../../validators/shadow-score.py \
   --sealed sealed-results.json \
   --open open-results.json \
   --format summary
@@ -38,7 +38,7 @@ python ../../validators/gap-score.py \
 
 **Expected output:**
 ```
-Gap Score: 60.0% 🔴 (critical)
+Shadow Score: 60.0% 🔴 (critical)
 Sealed: 6/15 passed
 Open:   4/4 passed
 
