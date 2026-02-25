@@ -105,9 +105,9 @@ The reference Level 3 implementation is **[Dark Factory](https://github.com/DUBS
 
 ## Reporting Format
 
-Gap Reports can be produced in JSON (machine-readable) or Markdown (human-readable).
+Shadow Reports can be produced in JSON (machine-readable) or Markdown (human-readable).
 
-**JSON schema:** [`validators/gap-report-schema.json`](validators/gap-report-schema.json)
+**JSON schema:** [`validators/shadow-report-schema.json`](validators/shadow-report-schema.json)
 
 ```json
 {
