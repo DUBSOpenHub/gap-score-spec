@@ -1,7 +1,7 @@
 # Example 02 — Minor Gaps (11.1%)
 
 **Scenario:** License scanner CLI tool  
-**Gap Score:** 11.1% 🟢 Minor
+**Shadow Score:** 11.1% 🟢 Minor
 
 ## What Happened
 
@@ -21,7 +21,7 @@ Both were fixed in one hardening cycle after receiving the failure messages.
 ## Run the Validator
 
 ```bash
-python ../../validators/gap-score.py \
+python ../../validators/shadow-score.py \
   --sealed sealed-results.json \
   --open open-results.json \
   --format summary
@@ -29,7 +29,7 @@ python ../../validators/gap-score.py \
 
 **Expected output:**
 ```
-Gap Score: 11.1% 🟢 (minor)
+Shadow Score: 11.1% 🟢 (minor)
 Sealed: 16/18 passed
 Open:   12/12 passed
 
