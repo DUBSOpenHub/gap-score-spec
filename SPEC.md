@@ -303,7 +303,7 @@ Implementations may claim conformance at three levels:
 
 ---
 
-## 7. Reference Implementation
+## 7. Reference Implementations
 
 The reference implementation of the Shadow Score Specification is **[Dark Factory](https://github.com/DUBSOpenHub/dark-factory)**, an autonomous agentic build system for the GitHub Copilot CLI.
 
@@ -313,6 +313,14 @@ Dark Factory implements **Level 3** conformance:
 - QA Validator runs both suites and produces Gap Report (§4.3)
 - Hardening loop with failure-message-only feedback (§4.4)
 - SHA-256 hash computed and stored in state.json (§4.5)
+
+The reference **Level 2** implementation is **[Terminal Stampede](https://github.com/DUBSOpenHub/terminal-stampede)**, a parallel agent runtime for CLI coding agents.
+
+Terminal Stampede implements **Level 2** conformance:
+- Sealed tests generated before agents launch, stored in `sealed-tests/` (§4.1)
+- Information isolation — agents never see sealed tests or know they're being scored (§4.2)
+- Merger agent runs both suites and integrates Shadow Score into merge report (§4.3)
+- SHA-256 tamper hash verified via `.seal-hash` before validation (§4.5)
 
 Lightweight reference validators for computing Shadow Score from test output are available in the [`validators/`](./validators/) directory.
 

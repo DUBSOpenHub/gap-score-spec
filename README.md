@@ -88,9 +88,11 @@ Full protocol details: [**SPEC.md §4**](SPEC.md#4-sealed-envelope-protocol)
 | **L2** — Sealed Envelope | L1 + test isolation + tamper hash | AI agent pipelines |
 | **L3** — Full Protocol | L2 + hardening loop + velocity tracking | Production autonomous builds |
 
-## Reference Implementation
+## Reference Implementations
 
 The reference Level 3 implementation is **[Dark Factory](https://github.com/DUBSOpenHub/dark-factory)** — an autonomous agentic build system for the GitHub Copilot CLI with sealed-envelope testing.
+
+The reference Level 2 implementation is **[Terminal Stampede](https://github.com/DUBSOpenHub/terminal-stampede)** — a parallel agent runtime that shadow-scores each agent's work during merge using sealed tests with tamper-hash verification.
 
 ## Worked Examples
 
@@ -133,6 +135,7 @@ Full schema: [**SPEC.md §5**](SPEC.md#5-reporting-format)
 | Project | Conformance | Description |
 |---------|-------------|-------------|
 | [Dark Factory](https://github.com/DUBSOpenHub/dark-factory) | Level 3 | Reference implementation — autonomous agentic build system |
+| [Terminal Stampede](https://github.com/DUBSOpenHub/terminal-stampede) | Level 2 | Parallel agent runtime — shadow-scores each agent's work during merge via sealed tests |
 
 *Using Shadow Score? [Open a PR](https://github.com/DUBSOpenHub/shadow-score-spec/pulls) to add your project.*
 
