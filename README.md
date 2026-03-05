@@ -133,6 +133,7 @@ Full schema: [**SPEC.md §5**](SPEC.md#5-reporting-format)
 | Project | Conformance | Description |
 |---------|-------------|-------------|
 | [Dark Factory](https://github.com/DUBSOpenHub/dark-factory) | Level 3 | Reference implementation — autonomous agentic build system |
+| [Terminal Stampede](https://github.com/DUBSOpenHub/terminal-stampede) | Level 1 | Parallel agent runtime — shadow-scores each agent's work during merge via sealed tests |
 
 *Using Shadow Score? [Open a PR](https://github.com/DUBSOpenHub/shadow-score-spec/pulls) to add your project.*
 
